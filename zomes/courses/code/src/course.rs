@@ -75,7 +75,7 @@ let CourseAnchor: String   = "Courses".to_string();
                 _ =>{ // for all other operation Modify||Delete we should check the owner
 
                      if old_etnry.teacher_address!= AGENT_ADDRESS.to_string(){
-                       Err("You are not allowed")
+                       Err("You are not the owner of the Entry. So you can not change it.")
                      }
                      else{
 
