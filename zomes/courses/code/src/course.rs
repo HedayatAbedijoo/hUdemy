@@ -10,12 +10,14 @@ extern crate serde_json;
 extern crate holochain_json_derive;
 
 use hdk::{
+    AGENT_ADDRESS,
     entry_definition::ValidatingEntryType,
     error::ZomeApiResult,
 };
 use hdk::holochain_core_types::{
     entry::Entry,
     dna::entry_types::Sharing,
+    validation::EntryValidationData
 };
 
 use hdk::holochain_json_api::{
@@ -33,15 +35,25 @@ use hdk_proc_macros::zome;
 #[derive(Serialize, Deserialize, Debug, DefaultJson,Clone)]
 pub struct Course {
     Title: String,
+    modules:Vec!<Address>,
+    teacher_address: Address
 }
 
+impl Course{
+    // Constrcuctor
+    fn new(title:String, owner:Address)-> Self{
+        Course{
+            Title:title,
+            teacher_address:owner
+        }
+    }
+}
 
+// This is constant variable for Anchor. We will use this Anchor to query all courses
 let CourseAnchor: String   = "Courses".to_string();
 
 ////////////////////Entry Definition
-/// Entry Link
-     #[entry_def]
-     fn Course_def() -> ValidatingEntryType {
+   pub fn Course_def() -> ValidatingEntryType {
         entry!(
             name: "Course",
             description: "this is the definition of course",
@@ -50,9 +62,26 @@ let CourseAnchor: String   = "Courses".to_string();
                 hdk::ValidationPackageDefinition::Entry
             },
             validation: | _validation_data: hdk::EntryValidationData<Course>| {
-               
-               //// if course title is more than 50 charater throw an Error
-                Ok(())
+                match _validation_data{
+                    EntryValidationData::Create{entry,validation_data:_} =>{ // validation on Create
+                            if _validation_data.Title.len()>50{
+                        Err("Title lenght should not be more than 50 character".into())
+                         }
+                        else{
+                                Ok(())
+                        }
+                    },                    
+                },
+                _ =>{ // for all other operation Modify||Delete we should check the owner
+
+                     if old_etnry.teacher_address!= AGENT_ADDRESS.to_string(){
+                       Err("You are not allowed")
+                     }
+                     else{
+
+                     }
+                }
+                                               
             }
         )
     }
