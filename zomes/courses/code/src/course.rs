@@ -41,12 +41,15 @@ pub struct Course {
 
 impl Course{
     // Constrcuctor
-    fn new(title:String, owner:Address)-> Self{
+    pub fn new(title:String, owner:Address)-> Self{
         Course{
             Title:title,
             teacher_address:owner
         }
     }
+
+    
+    
 }
 
 // This is constant variable for Anchor. We will use this Anchor to query all courses
@@ -70,18 +73,26 @@ let CourseAnchor: String   = "Courses".to_string();
                         else{
                                 Ok(())
                         }
-                    },                    
-                },
-                _ =>{ // for all other operation Modify||Delete we should check the owner
+                    },
+                    EntryValidationData::Modify{old_etnry,new_entry,..}=>{
+                        // for all other operation Modify||Delete we should check the owner
 
                      if old_etnry.teacher_address!= AGENT_ADDRESS.to_string(){
                        Err("You are not the owner of the Entry. So you can not change it.")
                      }
                      else{
-
+                           // check the lenght of title again.
                      }
-                }
-                                               
+                    },
+                    EntryValidationData::Delete{old_entry,..}=>{
+                      if old_etnry.teacher_address!= AGENT_ADDRESS.to_string(){
+                       Err("You are not the owner of the Entry. So you can not change it.")
+                     }
+                     else{
+                        OK(())
+                     }
+                    }                    
+                }                                               
             }
         )
     }
