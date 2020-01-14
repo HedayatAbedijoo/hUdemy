@@ -1,3 +1,4 @@
+/***************** Required Library */
 #![feature(proc_macro_hygiene)]
 #[macro_use]
 extern crate hdk;
@@ -9,14 +10,20 @@ extern crate serde_json;
 #[macro_use]
 extern crate holochain_json_derive;
 
-use hdk::holochain_core_types::{dna::entry_types::Sharing, entry::Entry};
-use hdk::{entry_definition::ValidatingEntryType, error::ZomeApiResult};
+use hdk::{
+    entry_definition::ValidatingEntryType, 
+    error::ZomeApiResult
+};
 
-use hdk::holochain_json_api::{error::JsonError, json::JsonString};
+//use hdk::holochain_json_api::json::JsonString;
 
 use hdk::holochain_persistence_api::cas::content::Address;
 
 use hdk_proc_macros::zome;
+
+//use std::convert::TryInto;
+
+/******************************** */
 mod course;
 
 #[zome]
@@ -49,30 +56,22 @@ mod Course {
   }
 
   #[zome_fn("hc_public")]
-  fn update_course(title: String, courseAddress: Address) -> ZomeApiResult<Address> {
-    course::update(&title, &courseAddress)
+  fn update_course(title: String, courseAddress: Address) -> Result<Address,String> {
+    course::update(title, &courseAddress)
   }
 
   #[zome_fn("hc_public")]
-  fn delete_course(courseAddress: Address) -> ZomeApiResult<()> {
-    course::delete(&courseAddress)
+  fn delete_course(courseAddress: Address) -> ZomeApiResult<Address> {
+    course::delete(courseAddress)
   }
 
   #[zome_fn("hc_public")]
-  fn get_courses() -> ZomeApiResult<Address> {
+  fn get_courses() -> ZomeApiResult<Vec<Address>> {
     course::list()
   }
 
   /**************************** Module Publish Function From Zome to OutSide */
-  ////
-  /// 
-  /// 
-  /// 
-  /// 
+
   /**************************** Content Publish Function From Zome to OutSide */
-  ///
-  /// 
-  /// 
-  /// 
-  /// 
+
 }
