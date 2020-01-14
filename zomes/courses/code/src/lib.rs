@@ -22,47 +22,57 @@ mod course;
 #[zome]
 mod Course {
 
-    #[init]
-    fn init() {
-        Ok(())
-    }
-
-    #[validate_agent]
-    pub fn validate_agent(validation_data: EntryValidationData<AgentId>) {
-        Ok(())
-    }
-    
-    #[entry_def]
-  fn anchor_entry_definition()-> ValidatingEntryType{
-      course::anchor_entry_def()
+  #[init]
+  fn init() {
+    Ok(())
   }
 
-    #[entry_def]
-    fn course_entry_definition()-> ValidatingEntryType{
-      course::course_entry_def()
-    }
-    
-    
-    /// Module Entry Definition
-    /// Content Entry Definition 
-    
+  #[validate_agent]
+  pub fn validate_agent(validation_data: EntryValidationData<AgentId>) {
+    Ok(())
+  }
 
-    ////////// Course Functions
-    // add
-    // delete
-    // update 
-    // list
+  /**************************** Course Publish Function From Zome to OutSide */
+  #[entry_def]
+  fn anchor_entry_definition() -> ValidatingEntryType {
+    course::anchor_entry_def()
+  }
 
-    /////// Module Functions
-    /// add 
-    /// delete
-    /// update
-    /// list(courseAddress)
-    
+  #[entry_def]
+  fn course_entry_definition() -> ValidatingEntryType {
+    course::course_entry_def()
+  }
 
-    ///// Content Functions
-    /// add
-    /// delete
-    /// update
-    /// list(Module Functions)
+  #[zome_fn("hc_public")]
+  fn create_course(title: String) -> ZomeApiResult<Address> {
+    course::create(&title)
+  }
+
+  #[zome_fn("hc_public")]
+  fn update_course(title: String, courseAddress: Address) -> ZomeApiResult<Address> {
+    course::update(&title, &courseAddress)
+  }
+
+  #[zome_fn("hc_public")]
+  fn delete_course(courseAddress: Address) -> ZomeApiResult<()> {
+    course::delete(&courseAddress)
+  }
+
+  #[zome_fn("hc_public")]
+  fn get_courses() -> ZomeApiResult<Address> {
+    course::list()
+  }
+
+  /**************************** Module Publish Function From Zome to OutSide */
+  ////
+  /// 
+  /// 
+  /// 
+  /// 
+  /**************************** Content Publish Function From Zome to OutSide */
+  ///
+  /// 
+  /// 
+  /// 
+  /// 
 }
