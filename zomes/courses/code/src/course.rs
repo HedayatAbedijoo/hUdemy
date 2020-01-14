@@ -67,37 +67,45 @@ let CourseAnchor: String   = "Courses".to_string();
             validation: | _validation_data: hdk::EntryValidationData<Course>| {
                 match _validation_data{
                     EntryValidationData::Create{entry,validation_data:_} =>{ // validation on Create
-                            if _validation_data.Title.len()>50{
-                        Err("Title lenght should not be more than 50 character".into())
-                         }
-                        else{
-                                Ok(())
-                        }
+                       validate_course_title(&_validation_data.Title)
                     },
                     EntryValidationData::Modify{old_etnry,new_entry,..}=>{
-                        // for all other operation Modify||Delete we should check the owner
-
-                     if old_etnry.teacher_address!= AGENT_ADDRESS.to_string(){
-                       Err("You are not the owner of the Entry. So you can not change it.")
-                     }
-                     else{
-                           // check the lenght of title again.
-                     }
+                        match validate_course_ownership(&old_etnry.teacher_address) = result {
+                            Ok(_)=> validate_course_title(&new_entry.title),
+                            Err(e) => Err(e)
+                        }
                     },
                     EntryValidationData::Delete{old_entry,..}=>{
-                      if old_etnry.teacher_address!= AGENT_ADDRESS.to_string(){
-                       Err("You are not the owner of the Entry. So you can not change it.")
-                     }
-                     else{
-                        OK(())
-                     }
+                      validate_course_ownership(&old_entry.teacher_address)
                     }                    
                 }                                               
             }
         )
     }
 
-////////////////////
+//////////////////// Course Entry Validation
+/// 
+/// 
+
+fn validate_course_title(title:&str)->Result<(),Err>{
+
+    if title.len()>50 {
+        Err("Course title is too long".into())
+    }
+    else{
+        Ok(())
+    }
+
+}
+
+fn validate_course_ownership(courseOwnerAddress:&Address)-> Result<(),Err>{
+    if courseOwnerAddress != AGENT_ADDRESS.to_string(){
+        Err("You are not the owner of the Entry. So you can not change it.")
+    } else{
+        Ok(())
+    }
+}
+
 /// Entry Helper Functions: CRUD
 /// 
    
