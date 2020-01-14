@@ -52,11 +52,9 @@ impl Course{
     
 }
 
-// This is constant variable for Anchor. We will use this Anchor to query all courses
-let CourseAnchor: String   = "Courses".to_string();
 
-////////////////////Entry Definition
-   pub fn Course_def() -> ValidatingEntryType {
+////////////////////Course Entry Definition
+   pub fn course_entry_def() -> ValidatingEntryType {
         entry!(
             name: "Course",
             description: "this is the definition of course",
@@ -83,10 +81,35 @@ let CourseAnchor: String   = "Courses".to_string();
         )
     }
 
-//////////////////// Course Entry Validation
-/// 
-/// 
-
+// This is constant variable for Anchor.
+let CourseAnchor: String   = "course_list".to_string();
+//// Anchor Definition : This Anchor will be used to query all courses
+ pub fn anchor_entry_def() -> ValidatingEntryType {
+        entry!(
+            name: "anchor",
+            description:"Anchor to all Courses",
+            sharing: Sharing::Public,
+            validation_package:||{
+                hdk::ValidationPackageDefinition::Entry
+            },
+            validation:|_validation_data: hdk::EntryValidationData<String>|{
+                Ok(())
+            },
+            links:[
+                to!(
+                    "Course",
+                    link_type: CourseAnchor,
+                    validation_package:||{
+                        hdk::ValidationPackageDefinition::Entry
+                    },
+                    validation:|_validation_data: hdk::LinkValidationData|{
+                        Ok(())
+                    }
+                )
+            ]
+        )
+    }
+/*********************** Course Validations */
 fn validate_course_title(title:&str)->Result<(),Err>{
 
     if title.len()>50 {
@@ -105,31 +128,28 @@ fn validate_course_ownership(courseOwnerAddress:&Address)-> Result<(),Err>{
         Ok(())
     }
 }
-
-/// Entry Helper Functions: CRUD
-/// 
-   
-     #[zome_fn("hc_public")]
-    fn create(title:String, teacherAddress:Address) -> ZomeApiResult<Address> {
+/********************************************** */
+/// Course Helper Functions: CRUD
+        
+   pub fn create(title:String, teacherAddress:Address) -> ZomeApiResult<Address> {
      /// 1 Create Course
      /// 2 Create Course_Teacher link
      /// 3 Create Teacher_Course link 
      /// 3 Create "Courses" Anchor
     }
 
-     #[zome_fn("hc_public")]
-    fn update(title:String, address:Address) -> ZomeApiResult<()),ZomeApiError> {
+     
+  pub  fn update(title:String, address:Address) -> ZomeApiResult<()),ZomeApiError> {
      // Update Entry
      // update link 
     }
 
 
-     #[zome_fn("hc_public")]
-    fn delete(address:Address) -> ZomeApiResult<(), ZomeApiError> {
+   pub fn delete(address:Address) -> ZomeApiResult<(), ZomeApiError> {
      // delete course
     }
 
-     #[zome_fn("hc_public")]
-    fn list() -> ZomeApiResult<Vec!<Address>> {
+     
+   pub fn list() -> ZomeApiResult<Vec!<Address>> {
      // Get list of the courses using    Anchor: Courses
     }

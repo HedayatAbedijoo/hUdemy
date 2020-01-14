@@ -17,6 +17,7 @@ use hdk::holochain_json_api::{error::JsonError, json::JsonString};
 use hdk::holochain_persistence_api::cas::content::Address;
 
 use hdk_proc_macros::zome;
+mod course;
 
 #[zome]
 mod Course {
@@ -30,8 +31,18 @@ mod Course {
     pub fn validate_agent(validation_data: EntryValidationData<AgentId>) {
         Ok(())
     }
+    
+    #[entry_def]
+  fn anchor_entry_definition()-> ValidatingEntryType{
+      course::anchor_entry_def()
+  }
 
-    /// Course Entry Definition
+    #[entry_def]
+    fn course_entry_definition()-> ValidatingEntryType{
+      course::course_entry_def()
+    }
+    
+    
     /// Module Entry Definition
     /// Content Entry Definition 
     
