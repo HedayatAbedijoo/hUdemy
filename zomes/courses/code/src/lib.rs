@@ -56,13 +56,13 @@ mod Course {
   }
 
   #[zome_fn("hc_public")]
-  fn update_course(title: String, courseAddress: Address) -> Result<Address,String> {
-    course::update(title, &courseAddress)
+  fn update_course(title: String, course_address: Address) -> Result<Address,String> {
+    course::update(title, &course_address)
   }
 
   #[zome_fn("hc_public")]
-  fn delete_course(courseAddress: Address) -> ZomeApiResult<Address> {
-    course::delete(courseAddress)
+  fn delete_course(course_address: Address) -> ZomeApiResult<Address> {
+    course::delete(course_address)
   }
 
   #[zome_fn("hc_public")]
