@@ -1,4 +1,7 @@
 /***************** Required Library */
+#![allow(dead_code)] 
+#![allow(unused_imports)] 
+
 #![feature(proc_macro_hygiene)]
 #[macro_use]
 extern crate hdk;
@@ -25,7 +28,7 @@ use hdk_proc_macros::zome;
 
 /******************************** */
 mod course;
-
+mod module;
 #[zome]
 mod Course {
 
@@ -71,7 +74,10 @@ mod Course {
   }
 
   /**************************** Module Publish Function From Zome to OutSide */
-
+//  #[zome_fn("hc_public")]
+//  fn create_module(title:String,course_address:Address)->ZomeApiResult<Address>{
+//    module::create(title,course_address)
+//  }
   /**************************** Content Publish Function From Zome to OutSide */
 
 }

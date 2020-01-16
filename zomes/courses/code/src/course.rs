@@ -1,7 +1,7 @@
 /************************ Import Required Libraries */
 use hdk::{
     entry_definition::ValidatingEntryType,
-    error::{ZomeApiResult},
+    error::{ZomeApiResult, ZomeApiError},    
     AGENT_ADDRESS,
 };
 
@@ -14,6 +14,8 @@ use hdk::prelude::LinkMatch;
 use hdk::holochain_json_api::{json::JsonString, error::JsonError};
 use hdk::holochain_core_types::dna::entry_types::Sharing;
 use std::convert::TryFrom;
+use crate::hdk::prelude::AddressableContent;
+use hdk::ValidationData;
 /******************************************* */
 
 #[derive(Serialize, Deserialize, Debug, DefaultJson, Clone)]
@@ -143,4 +145,28 @@ pub fn list() -> ZomeApiResult<Vec<Address>> {
     .addresses();
 
     Ok(addresses)
+}
+
+
+
+pub fn is_user_course_owner(validation_data: ValidationData, course_address:&Address)-> Result<(), String>{
+
+let local_chain = validation_data.package.source_chain_entries
+                		.ok_or("Could not retrieve source chain")?;
+let course = local_chain
+        .iter()
+        .filter(|entry| {
+            entry.address() == course_address.to_owned()
+        })
+        .filter_map(|entry| {
+            if let Entry::App(_, entry_data) = entry {
+                Some(Course::try_from(entry_data.clone()).unwrap())
+            } else {
+                None
+            }
+        })
+        .next()
+        .ok_or(ZomeApiError::HashNotFound)?;
+
+        validate_course_ownership(&course.teacher_address)
 }

@@ -24,6 +24,7 @@ mod module;
 #[derive(Serialize, Deserialize, Debug, DefaultJson, Clone)]
 pub struct Content {
     Url: String,
+    module_address:Address
 }
 
 /// Entry Definition
