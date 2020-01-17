@@ -21,6 +21,7 @@ use hdk::{
 //use hdk::holochain_json_api::json::JsonString;
 
 use hdk::holochain_persistence_api::cas::content::Address;
+use hdk::holochain_json_api::{json::JsonString, error::JsonError};
 
 use hdk_proc_macros::zome;
 
@@ -73,11 +74,20 @@ mod Course {
     course::list()
   }
 
+
   /**************************** Module Publish Function From Zome to OutSide */
-//  #[zome_fn("hc_public")]
-//  fn create_module(title:String,course_address:Address)->ZomeApiResult<Address>{
-//    module::create(title,course_address)
-//  }
+#[derive(Serialize, Deserialize, Debug, DefaultJson, Clone)]
+ pub struct CreateModuleResult{
+   module_address:Address,
+   course_address:Address
+ }
+ #[zome_fn("hc_public")]
+ fn create_module(title:String,course_address:Address)-> ZomeApiResult<CreateModuleResult>{
+   let module_address =  module::create(title,&course_address)?;
+   let updated_course_address = course::add_module_to_course(&course_address,&module_address)?;   
+   let result = CreateModuleResult{module_address: module_address, course_address:updated_course_address};
+   Ok(result)
+ }
   /**************************** Content Publish Function From Zome to OutSide */
 
 }

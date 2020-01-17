@@ -85,9 +85,12 @@ pub fn course_entry_def() -> ValidatingEntryType {
 }
 
 
-// pub fn create(title:String,course_address:Address)-> ZomeApiResult<Address>{
-
-// }
+pub fn create(title:String,course_address:&Address)-> ZomeApiResult<Address>{
+  let new_moduel = Module::new(title,course_address.clone());
+  let new_module_entry = Entry::App("module".into(),new_moduel.into());
+  let new_module_address = hdk::commit_entry(&new_module_entry)?;
+  Ok(new_module_address)
+}
 
 ///// Helper Function
 /*

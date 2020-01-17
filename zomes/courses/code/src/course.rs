@@ -151,9 +151,9 @@ pub fn list() -> ZomeApiResult<Vec<Address>> {
 
 pub fn is_user_course_owner(validation_data: ValidationData, course_address:&Address)-> Result<(), String>{
 
-let local_chain = validation_data.package.source_chain_entries
+ let source_chain = validation_data.package.source_chain_entries
                 		.ok_or("Could not retrieve source chain")?;
-let course = local_chain
+let course = source_chain
         .iter()
         .filter(|entry| {
             entry.address() == course_address.to_owned()
@@ -169,4 +169,15 @@ let course = local_chain
         .ok_or(ZomeApiError::HashNotFound)?;
 
         validate_course_ownership(&course.teacher_address)
+}
+
+pub fn add_module_to_course(course_address:&Address, module_address:&Address)-> ZomeApiResult<Address>{
+    let  current_course = hdk::get_entry(course_address).unwrap().unwrap();
+    if let Entry::App(_,current_course) = current_course{     
+     let mut course_entry = Course::try_from(current_course.clone()).expect("Entry at this address is not Course. You sent a wrong address");
+     course_entry.modules.push(module_address.clone());
+     hdk::api::update_entry(Entry::App("course".into(),course_entry.into()),course_address)
+    }else{      
+      panic!("This address is not a valid address")  
+    }
 }
