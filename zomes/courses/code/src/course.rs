@@ -1,21 +1,18 @@
 /************************ Import Required Libraries */
 use hdk::{
     entry_definition::ValidatingEntryType,
-    error::{ZomeApiResult, ZomeApiError},    
+    error::{ZomeApiError, ZomeApiResult},
     AGENT_ADDRESS,
 };
 
-use hdk::holochain_core_types::{    
-    validation::EntryValidationData,
-    entry::Entry    
-};
+use crate::hdk::prelude::AddressableContent;
+use hdk::holochain_core_types::dna::entry_types::Sharing;
+use hdk::holochain_core_types::{entry::Entry, validation::EntryValidationData};
+use hdk::holochain_json_api::{error::JsonError, json::JsonString};
 use hdk::holochain_persistence_api::cas::content::Address;
 use hdk::prelude::LinkMatch;
-use hdk::holochain_json_api::{json::JsonString, error::JsonError};
-use hdk::holochain_core_types::dna::entry_types::Sharing;
-use std::convert::TryFrom;
-use crate::hdk::prelude::AddressableContent;
 use hdk::ValidationData;
+use std::convert::TryFrom;
 /******************************************* */
 
 #[derive(Serialize, Deserialize, Debug, DefaultJson, Clone)]
@@ -32,6 +29,13 @@ impl Course {
             title: title,
             teacher_address: owner,
             modules: Vec::default(),
+        }
+    }
+    pub fn new_with_moduels(title: String, owner: Address, modules: Vec<Address>) -> Self {
+        Course {
+            title: title,
+            teacher_address: owner,
+            modules: modules,
         }
     }
 }
@@ -109,21 +113,27 @@ fn validate_course_ownership(course_owner_address: &Address) -> Result<(), Strin
 /********************************************** */
 /// Course Helper Functions: CRUD
 
-pub fn create(title: &str) -> ZomeApiResult<Address> {  
-    let new_course = Course::new(title.into(),AGENT_ADDRESS.to_string().into());
+pub fn create(title: &str) -> ZomeApiResult<Address> {
+    let new_course = Course::new(title.into(), AGENT_ADDRESS.to_string().into());
     let new_course_entry = Entry::App("course".into(), new_course.into());
     let new_course_address = hdk::commit_entry(&new_course_entry)?;
 
     Ok(new_course_address)
 }
 
-pub fn update(title: String, course_address: &Address) -> Result<Address,String> {
+pub fn update(title: String, course_address: &Address) -> Result<Address, String> {
     let current_course_json = hdk::get_entry(&course_address).unwrap().unwrap();
     if let Entry::App(_, current_course_json) = current_course_json {
         let current_course =
             Course::try_from(current_course_json).expect("Entry at this address is not Course");
-        let new_version_course = Course::new(title, current_course.teacher_address);        
-        let edited_course_address = hdk::commit_entry(&Entry::App("course".into(),new_version_course.into()))?;
+        let new_version_course = Course::new_with_moduels(
+            title,
+            current_course.teacher_address,
+            current_course.modules,
+        );
+        let new_version_course_entry = Entry::App("course".into(), new_version_course.into());
+        let edited_course_address =
+            hdk::api::update_entry(new_version_course_entry, course_address)?;
         Ok(edited_course_address)
     } else {
         Err("Course has not found!".into())
@@ -141,23 +151,23 @@ pub fn list() -> ZomeApiResult<Vec<Address>> {
         &anchor_address,
         LinkMatch::Exactly("course_list"),
         LinkMatch::Any,
-    )?    
+    )?
     .addresses();
 
     Ok(addresses)
 }
 
-
-
-pub fn is_user_course_owner(validation_data: ValidationData, course_address:&Address)-> Result<(), String>{
-
- let source_chain = validation_data.package.source_chain_entries
-                		.ok_or("Could not retrieve source chain")?;
-let course = source_chain
+pub fn is_user_course_owner(
+    validation_data: ValidationData,
+    course_address: &Address,
+) -> Result<(), String> {
+    let source_chain = validation_data
+        .package
+        .source_chain_entries
+        .ok_or("Could not retrieve source chain")?;
+    let course = source_chain
         .iter()
-        .filter(|entry| {
-            entry.address() == course_address.to_owned()
-        })
+        .filter(|entry| entry.address() == course_address.to_owned())
         .filter_map(|entry| {
             if let Entry::App(_, entry_data) = entry {
                 Some(Course::try_from(entry_data.clone()).unwrap())
@@ -168,16 +178,76 @@ let course = source_chain
         .next()
         .ok_or(ZomeApiError::HashNotFound)?;
 
-        validate_course_ownership(&course.teacher_address)
+    validate_course_ownership(&course.teacher_address)
 }
 
-pub fn add_module_to_course(course_address:&Address, module_address:&Address)-> ZomeApiResult<Address>{
-    let  current_course = hdk::get_entry(course_address).unwrap().unwrap();
-    if let Entry::App(_,current_course) = current_course{     
-     let mut course_entry = Course::try_from(current_course.clone()).expect("Entry at this address is not Course. You sent a wrong address");
-     course_entry.modules.push(module_address.clone());
-     hdk::api::update_entry(Entry::App("course".into(),course_entry.into()),course_address)
-    }else{      
-      panic!("This address is not a valid address")  
+pub fn add_module_to_course(
+    course_address: &Address,
+    module_address: &Address,
+) -> ZomeApiResult<Address> {
+    let current_course = hdk::get_entry(course_address).unwrap().unwrap();
+    if let Entry::App(_, current_course) = current_course {
+        let mut course_entry = Course::try_from(current_course.clone())
+            .expect("Entry at this address is not Course. You sent a wrong address");
+        course_entry.modules.push(module_address.clone());
+        hdk::api::update_entry(
+            Entry::App("course".into(), course_entry.into()),
+            course_address,
+        )
+    } else {
+        panic!("This address is not a valid address")
+    }
+}
+
+pub fn update_module_in_course(
+    course_address: &Address,
+    old_module_address: &Address,
+    new_module_address: &Address,
+) -> ZomeApiResult<Address> {
+    let current_course = hdk::get_entry(course_address).unwrap().unwrap();
+    if let Entry::App(_, current_course) = current_course {
+        let mut course_entry = Course::try_from(current_course.clone())
+            .expect("Entry at this address is not Course. You sent a wrong address");
+        // remove the old address from Modules,
+        let index = course_entry
+            .modules
+            .iter()
+            .position(|x| x == old_module_address)
+            .unwrap();
+        course_entry.modules.remove(index);
+        // add new module address to list of Modules
+        course_entry.modules.push(new_module_address.clone());
+        hdk::api::update_entry(
+            Entry::App("course".into(), course_entry.into()),
+            course_address,
+        )
+    } else {
+        panic!("This address is not a valid address")
+    }
+}
+
+pub fn remove_module_from_course(
+    course_address: &Address,
+    module_address: &Address,
+) -> ZomeApiResult<Address> {
+    let current_course = hdk::get_entry(course_address).unwrap().unwrap();
+    if let Entry::App(_, current_course) = current_course {
+        let mut course_entry = Course::try_from(current_course.clone())
+            .expect("Entry at this address is not Course. You sent a wrong address");
+
+        // remove the old address from Modules,
+        let index = course_entry
+            .modules
+            .iter()
+            .position(|x| x == module_address)
+            .unwrap();
+        course_entry.modules.remove(index);
+
+        hdk::api::update_entry(
+            Entry::App("course".into(), course_entry.into()),
+            course_address,
+        )
+    } else {
+        panic!("This address is not a valid address")
     }
 }
