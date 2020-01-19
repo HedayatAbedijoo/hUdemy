@@ -62,24 +62,42 @@ orchestrator.registerScenario("description of example test",
     t.deepEqual(result, { Ok: 'every thing is working' });
     await s.consistency();
 
-    console.log("Test create_course:");
-
-    // Make a call to a Zome function
-    // indicating the function, and passing it an input
-    const addr = await alice.call("course_dna", "courses", "create_course", {
+    console.log("Test1 create_course:");
+    const course_addr = await alice.call("course_dna", "courses", "create_course", {
       title: "first test course"
     });
-    console.log(addr);
-    t.ok(addr.Ok);
-    await s.consistency()
+    console.log(course_addr);
+    t.ok(course_addr.Ok);
+    // Wait for all network activity to settle
+    await s.consistency();
 
-    console.log("Test get_course:");
+    const course = await bob.call("course_dna", "courses", "get_course", { "address": course_addr.Ok });
+    console.log("Test2 Get Course:");
+    console.log(course);
+    // Wait for all network activity to settle
+    await s.consistency();
 
-    const result2 = await bob.call("course_dna", "courses", "get_course", { "address": addr.Ok })
-    console.log(result2);
+    const module_result = await bob.call("course_dna", "courses", "create_module", {
+      title: "new module",
+      course_address: course_addr.Ok
+    });
+    console.log("Test3: Create Module:");
+    console.log(module_result.Ok);
+
+    const updated_course = await bob.call("course_dna", "courses", "get_course", {
+      "address": module_result.Ok.course_address
+    });
+    console.log("Test4: Get Course Again:");
+    console.log(updated_course.Ok);
+
+    // const something = JSON.parse(module_result.Ok);
+    // console.log(something);
+
+    t.ok(module_result.Ok);
+    //const course = await bob.call("course_dna", "courses", "get_course", { "address": module_result.Ok });
 
     // Wait for all network activity to settle
-    await s.consistency()
+    await s.consistency();
     // // check for equality of the actual and expected results
     // // t.deepEqual(result, { Ok: { App: ['my_entry', '{"content":"sample content"}'] } })
     // t.ok(result.Ok);

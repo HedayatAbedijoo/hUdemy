@@ -47,20 +47,24 @@ pub fn course_entry_def() -> ValidatingEntryType {
         description: "this is the definition of course",
         sharing: Sharing::Public,
         validation_package: || {
-            hdk::ValidationPackageDefinition::Entry
+            hdk::ValidationPackageDefinition::ChainFull
         },
-        validation: | _validation_data: hdk::EntryValidationData<Course>| {
-            match _validation_data{
+        validation: | validation_data: hdk::EntryValidationData<Course>| {
+            match validation_data{
                 EntryValidationData::Create{entry,..} =>{
                    validate_course_title(&entry.title)
                 },
-                EntryValidationData::Modify{new_entry,old_entry,..}=>{
+                EntryValidationData::Modify{new_entry,old_entry,validation_data,..}=>{
+                let _chain_entries = validation_data.package.source_chain_entries.unwrap().clone();
+                // TODO: I need to access Sender_Adress of this modification.
                     match validate_course_ownership(&old_entry.teacher_address) {
                         Ok(_)=> validate_course_title(&new_entry.title),
                         Err(e) => Err(e)
                     }
                 },
-                EntryValidationData::Delete{old_entry,..}=>{
+                EntryValidationData::Delete{old_entry,validation_data,..}=>{
+                // TODO: I need to access Sender_Adress of this modification.
+                let _chain_entries = validation_data.package.source_chain_entries.unwrap().clone();
                   validate_course_ownership(&old_entry.teacher_address)
                 }
             }
@@ -102,13 +106,18 @@ fn validate_course_title(title: &str) -> Result<(), String> {
         Ok(())
     }
 }
-
-fn validate_course_ownership(course_owner_address: &Address) -> Result<(), String> {
-    if course_owner_address.to_string() != AGENT_ADDRESS.to_string() {
-        Err("You are not the owner of the Entry. So you can not change it.".into())
-    } else {
-        Ok(())
-    }
+//TODO: validate course_ownership. I need to access to a the Agent_Address of entry sender.
+fn validate_course_ownership(_course_owner_address: &Address) -> Result<(), String> {
+    Ok(())
+    // if course_owner_address.to_string() != executer_address.to_string() {
+    //     // let errmsg = format!(
+    //     //     "You are not the owner of the Entry. So you can not change it.{:?}",
+    //     //     (course_owner_address.to_string(), agent_address)
+    //     // );
+    //     Err("You are not the owner of the Entry. So you can not change".into())
+    // } else {
+    //     Ok(())
+    // }
 }
 /********************************************** */
 /// Course Helper Functions: CRUD
@@ -158,27 +167,27 @@ pub fn list() -> ZomeApiResult<Vec<Address>> {
 }
 
 pub fn is_user_course_owner(
-    validation_data: ValidationData,
-    course_address: &Address,
+    _chain_entries: &Vec<Entry>,
+    _course_address: &Address,
 ) -> Result<(), String> {
-    let source_chain = validation_data
-        .package
-        .source_chain_entries
-        .ok_or("Could not retrieve source chain")?;
-    let course = source_chain
-        .iter()
-        .filter(|entry| entry.address() == course_address.to_owned())
-        .filter_map(|entry| {
-            if let Entry::App(_, entry_data) = entry {
-                Some(Course::try_from(entry_data.clone()).unwrap())
-            } else {
-                None
-            }
-        })
-        .next()
-        .ok_or(ZomeApiError::HashNotFound)?;
+    Ok(())
+    //TODO: I need to iter on chain-entires and find entry of course and check for the ownership
+    // let course = chain_entries
+    //     .iter()
+    //     .filter(|entry| entry.address() == course_address.to_owned())
+    //     .filter_map(|entry| {
+    //         if let Entry::App(_, entry_data) = entry {
+    //             Some(Course::try_from(entry_data.clone()).unwrap())
+    //         } else {
+    //             None
+    //         }
+    //     })
+    //     .next();
+    // //.Ok()?;
 
-    validate_course_ownership(&course.teacher_address)
+    // //.ok_or(ZomeApiError::HashNotFound)?;
+
+    // validate_course_ownership(&course.unwrap().teacher_address)
 }
 
 pub fn add_module_to_course(

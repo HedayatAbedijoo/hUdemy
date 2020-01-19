@@ -43,24 +43,27 @@ pub fn entry_def() -> ValidatingEntryType {
         description: "this is the definition of module",
         sharing: Sharing::Public,
         validation_package: || {
-            hdk::ValidationPackageDefinition::Entry
+            hdk::ValidationPackageDefinition::ChainFull
         },
         validation: | validation_data: hdk::EntryValidationData<Module>| {
             match validation_data{
                 EntryValidationData::Create{entry,validation_data} =>{
-                 match course::is_user_course_owner(validation_data,&entry.course_address){
+                let chain_entries = validation_data.package.source_chain_entries.unwrap().clone();
+                 match course::is_user_course_owner(&chain_entries,&entry.course_address){
                      Ok(_)=> validate_module_title(&entry.title),
                      Err(e)=> Err(e)
                  }
                 },
                 EntryValidationData::Modify{new_entry,old_entry,validation_data,..}=>{
-                    match course::is_user_course_owner(validation_data,&old_entry.course_address){
+                                    let chain_entries = validation_data.package.source_chain_entries.unwrap().clone();
+                    match course::is_user_course_owner(&chain_entries,&old_entry.course_address){
                      Ok(_)=> validate_module_title(&new_entry.title),
                      Err(e)=> Err(e)
                  }
                 },
                 EntryValidationData::Delete{old_entry,validation_data,..}=>{
-                    match course::is_user_course_owner(validation_data,&old_entry.course_address){
+                    let chain_entries = validation_data.package.source_chain_entries.unwrap().clone();
+                    match course::is_user_course_owner(&chain_entries,&old_entry.course_address){
                      Err(e)=> Err(e),
                      _=>Ok(())
                 }
