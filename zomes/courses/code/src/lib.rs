@@ -1,4 +1,5 @@
 /***************** Required Library */
+#![feature(vec_remove_item)]
 #![allow(dead_code)]
 #![allow(unused_imports)]
 #![feature(proc_macro_hygiene)]
@@ -12,7 +13,7 @@ extern crate serde_json;
 #[macro_use]
 extern crate holochain_json_derive;
 
-use hdk::{entry_definition::ValidatingEntryType, error::ZomeApiResult};
+use hdk::prelude::*;
 
 //use hdk::holochain_json_api::json::JsonString;
 
@@ -27,6 +28,8 @@ use hdk_proc_macros::zome;
 mod content;
 mod course;
 mod module;
+mod utils;
+mod validation;
 use course::Course;
 
 #[zome]
@@ -63,13 +66,17 @@ mod course_zome {
   }
 
   #[zome_fn("hc_public")]
-  fn get_course(address: Address) -> ZomeApiResult<Course> {
-    hdk::utils::get_as_type(address)
+  fn get_entry(address: Address) -> ZomeApiResult<Option<Entry>> {
+    hdk::get_entry(&address)
   }
 
   #[zome_fn("hc_public")]
-  fn update_course(title: String, course_address: Address) -> Result<Address, String> {
-    course::update(title, &course_address)
+  fn update_course(
+    title: String,
+    modules_addresses: Vec<Address>,
+    course_address: Address,
+  ) -> ZomeApiResult<Address> {
+    course::update(title, modules_addresses, &course_address)
   }
 
   #[zome_fn("hc_public")]
@@ -88,51 +95,19 @@ mod course_zome {
     module::entry_def()
   }
 
-  #[derive(Serialize, Deserialize, Debug, DefaultJson, Clone)]
-  pub struct ModuleResultOperation {
-    module_address: Address,
-    course_address: Address,
-  }
   #[zome_fn("hc_public")]
-  fn create_module(title: String, course_address: Address) -> ZomeApiResult<ModuleResultOperation> {
-    let module_address = module::create(title, &course_address)?;
-    let updated_course_address = course::add_module_to_course(&course_address, &module_address)?;
-    let result = ModuleResultOperation {
-      module_address: module_address,
-      course_address: updated_course_address,
-    };
-    Ok(result)
+  fn create_module(title: String, course_address: Address) -> ZomeApiResult<Address> {
+    module::create(title, &course_address)
   }
 
   #[zome_fn("hc_public")]
-  fn update_module(
-    title: String,
-    module_address: Address,
-    course_address: Address,
-  ) -> ZomeApiResult<ModuleResultOperation> {
-    let updated_module_address = module::update(title, &module_address)?;
-    let updated_course_address =
-      course::update_module_in_course(&course_address, &module_address, &updated_module_address)?;
-    let result = ModuleResultOperation {
-      module_address: updated_module_address,
-      course_address: updated_course_address,
-    };
-    Ok(result)
+  fn update_module_title(title: String, module_address: Address) -> ZomeApiResult<Address> {
+    module::update(title, &module_address)
   }
 
   #[zome_fn("hc_public")]
-  fn delete_module(
-    module_address: Address,
-    course_address: Address,
-  ) -> ZomeApiResult<ModuleResultOperation> {
-    let _address = module::delete(&module_address);
-    let updated_course_address =
-      course::remove_module_from_course(&course_address, &module_address)?;
-    let result = ModuleResultOperation {
-      module_address: module_address,
-      course_address: updated_course_address,
-    };
-    Ok(result)
+  fn delete_module(module_address: Address) -> ZomeApiResult<()> {
+    module::delete(module_address)
   }
 
   /**************************** Content Zome Functions */

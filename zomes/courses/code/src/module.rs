@@ -1,7 +1,7 @@
 /************************ Import Required Libraries */
 use hdk::{entry_definition::ValidatingEntryType, error::ZomeApiResult, AGENT_ADDRESS};
 
-use crate::course;
+use crate::{course::Course, validation};
 use hdk::holochain_core_types::dna::entry_types::Sharing;
 use hdk::holochain_core_types::{entry::Entry, validation::EntryValidationData};
 use hdk::holochain_json_api::{error::JsonError, json::JsonString};
@@ -25,6 +25,10 @@ impl Module {
             // content:Vec::default()
         }
     }
+
+    pub fn entry(&self) -> Entry {
+        Entry::App("module".into(), self.into())
+    }
 }
 
 /*********************** Course Validations */
@@ -46,28 +50,33 @@ pub fn entry_def() -> ValidatingEntryType {
             hdk::ValidationPackageDefinition::ChainFull
         },
         validation: | validation_data: hdk::EntryValidationData<Module>| {
-            match validation_data{
-                EntryValidationData::Create{entry,validation_data} =>{
-                let chain_entries = validation_data.package.source_chain_entries.unwrap().clone();
-                 match course::is_user_course_owner(&chain_entries,&entry.course_address){
-                     Ok(_)=> validate_module_title(&entry.title),
-                     Err(e)=> Err(e)
-                 }
-                },
-                EntryValidationData::Modify{new_entry,old_entry,validation_data,..}=>{
-                                    let chain_entries = validation_data.package.source_chain_entries.unwrap().clone();
-                    match course::is_user_course_owner(&chain_entries,&old_entry.course_address){
-                     Ok(_)=> validate_module_title(&new_entry.title),
-                     Err(e)=> Err(e)
-                 }
-                },
-                EntryValidationData::Delete{old_entry,validation_data,..}=>{
-                    let chain_entries = validation_data.package.source_chain_entries.unwrap().clone();
-                    match course::is_user_course_owner(&chain_entries,&old_entry.course_address){
-                     Err(e)=> Err(e),
-                     _=>Ok(())
-                }
+            match  validation_data {
+                EntryValidationData::Create { entry, validation_data } => {
+                    validate_module_title(&entry.title)?;
 
+                    let chain_entries = validation_data.package.source_chain_entries.unwrap().clone();
+
+                    validation::validate_author_is_teacher_of_course(&chain_entries,&entry.course_address)?;
+
+                    Ok(())
+                },
+                EntryValidationData::Modify { new_entry, old_entry, validation_data, .. } => {
+                    validate_module_title(&new_entry.title)?;
+
+                    if new_entry.course_address != old_entry.course_address {
+                        return Err(String::from("Cannot modify the course of a module"));
+                    }
+
+                    let chain_entries = validation_data.package.source_chain_entries.unwrap().clone();
+                    validation::validate_author_is_teacher_of_course(&chain_entries, &new_entry.course_address)?;
+
+                    Ok(())
+                },
+                EntryValidationData::Delete { old_entry, validation_data, .. } => {
+                    let chain_entries = validation_data.package.source_chain_entries.unwrap().clone();
+                    validation::validate_author_is_teacher_of_course(&chain_entries, &old_entry.course_address)?;
+
+                    Ok(())
                 }
             }
         },
@@ -87,27 +96,36 @@ pub fn entry_def() -> ValidatingEntryType {
 }
 
 pub fn create(title: String, course_address: &Address) -> ZomeApiResult<Address> {
-    let new_moduel = Module::new(title, course_address.clone());
-    let new_module_entry = Entry::App("module".into(), new_moduel.into());
-    let new_module_address = hdk::commit_entry(&new_module_entry)?;
+    let mut course: Course = hdk::utils::get_as_type(course_address.clone())?;
+
+    let new_module = Module::new(title, course_address.clone());
+    let new_module_address = hdk::commit_entry(&new_module.entry())?;
+
+    course.modules.push(new_module_address.clone());
+
+    hdk::update_entry(course.entry(), &course_address)?;
+
     Ok(new_module_address)
 }
 
-pub fn update(title: String, module_address: &Address) -> Result<Address, String> {
-    let current_module_json = hdk::get_entry(module_address).unwrap().unwrap();
-    if let Entry::App(_, current_module_json) = current_module_json {
-        let current_moduel =
-            Module::try_from(current_module_json).expect("Entry at this address is not Course");
-        let new_version_module = Module::new(title, current_moduel.course_address);
-        let new_version_module_entry = Entry::App("module".into(), new_version_module.into());
-        let edited_module_address =
-            hdk::api::update_entry(new_version_module_entry, module_address)?;
-        Ok(edited_module_address)
-    } else {
-        Err("Course has not found!".into())
-    }
+pub fn update(title: String, module_address: &Address) -> ZomeApiResult<Address> {
+    let mut module: Module = hdk::utils::get_as_type(module_address.clone())?;
+
+    module.title = title;
+
+    hdk::update_entry(module.entry(), module_address)
 }
 
-pub fn delete(module_address: &Address) -> ZomeApiResult<Address> {
-    hdk::remove_entry(module_address)
+pub fn delete(module_address: Address) -> ZomeApiResult<()> {
+    let module: Module = hdk::utils::get_as_type(module_address.clone())?;
+
+    let mut course: Course = hdk::utils::get_as_type(module.course_address.clone())?;
+
+    hdk::remove_entry(&module_address)?;
+
+    course.modules.remove_item(&module_address);
+
+    hdk::update_entry(course.entry(), &module.course_address)?;
+
+    Ok(())
 }

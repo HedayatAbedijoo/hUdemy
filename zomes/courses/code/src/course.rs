@@ -5,11 +5,12 @@ use hdk::{
     AGENT_ADDRESS,
 };
 
-use crate::hdk::prelude::AddressableContent;
+use crate::{utils, validation};
 use hdk::holochain_core_types::dna::entry_types::Sharing;
 use hdk::holochain_core_types::{entry::Entry, validation::EntryValidationData};
 use hdk::holochain_json_api::{error::JsonError, json::JsonString};
 use hdk::holochain_persistence_api::cas::content::Address;
+use hdk::prelude::AddressableContent;
 use hdk::prelude::LinkMatch;
 use hdk::ValidationData;
 use std::convert::TryFrom;
@@ -17,9 +18,9 @@ use std::convert::TryFrom;
 
 #[derive(Serialize, Deserialize, Debug, DefaultJson, Clone)]
 pub struct Course {
-    title: String,
-    modules: Vec<Address>,
-    teacher_address: Address,
+    pub title: String,
+    pub modules: Vec<Address>,
+    pub teacher_address: Address,
 }
 
 impl Course {
@@ -31,12 +32,16 @@ impl Course {
             modules: Vec::default(),
         }
     }
-    pub fn new_with_moduels(title: String, owner: Address, modules: Vec<Address>) -> Self {
+    pub fn from(title: String, owner: Address, modules: Vec<Address>) -> Self {
         Course {
             title: title,
             teacher_address: owner,
             modules: modules,
         }
+    }
+
+    pub fn entry(&self) -> Entry {
+        Entry::App("course".into(), self.into())
     }
 }
 
@@ -51,21 +56,28 @@ pub fn course_entry_def() -> ValidatingEntryType {
         },
         validation: | validation_data: hdk::EntryValidationData<Course>| {
             match validation_data{
-                EntryValidationData::Create{entry,..} =>{
+                EntryValidationData::Create { entry, .. } => {
                    validate_course_title(&entry.title)
                 },
-                EntryValidationData::Modify{new_entry,old_entry,validation_data,..}=>{
-                let _chain_entries = validation_data.package.source_chain_entries.unwrap().clone();
-                // TODO: I need to access Sender_Adress of this modification.
-                    match validate_course_ownership(&old_entry.teacher_address) {
-                        Ok(_)=> validate_course_title(&new_entry.title),
-                        Err(e) => Err(e)
+                EntryValidationData::Modify { new_entry, old_entry, validation_data, .. } => {
+                    validate_course_title(&new_entry.title)?;
+
+                    if new_entry.teacher_address != old_entry.teacher_address {
+                        return Err(String::from("Cannot change the teacher of the course"));
                     }
+
+                    let chain_entries = validation_data.package.source_chain_entries.unwrap().clone();
+
+                    validation::validate_chain_author(&old_entry.teacher_address, &chain_entries)?;
+
+                    Ok(())
                 },
-                EntryValidationData::Delete{old_entry,validation_data,..}=>{
-                // TODO: I need to access Sender_Adress of this modification.
-                let _chain_entries = validation_data.package.source_chain_entries.unwrap().clone();
-                  validate_course_ownership(&old_entry.teacher_address)
+                EntryValidationData::Delete {old_entry, validation_data, .. } => {
+                    let chain_entries = validation_data.package.source_chain_entries.unwrap().clone();
+
+                    validation::validate_chain_author(&old_entry.teacher_address, &chain_entries)?;
+
+                    Ok(())
                 }
             }
         }
@@ -106,19 +118,7 @@ fn validate_course_title(title: &str) -> Result<(), String> {
         Ok(())
     }
 }
-//TODO: validate course_ownership. I need to access to a the Agent_Address of entry sender.
-fn validate_course_ownership(_course_owner_address: &Address) -> Result<(), String> {
-    Ok(())
-    // if course_owner_address.to_string() != executer_address.to_string() {
-    //     // let errmsg = format!(
-    //     //     "You are not the owner of the Entry. So you can not change it.{:?}",
-    //     //     (course_owner_address.to_string(), agent_address)
-    //     // );
-    //     Err("You are not the owner of the Entry. So you can not change".into())
-    // } else {
-    //     Ok(())
-    // }
-}
+
 /********************************************** */
 /// Course Helper Functions: CRUD
 
@@ -130,23 +130,17 @@ pub fn create(title: String) -> ZomeApiResult<Address> {
     Ok(new_course_address)
 }
 
-pub fn update(title: String, course_address: &Address) -> Result<Address, String> {
-    let current_course_json = hdk::get_entry(&course_address).unwrap().unwrap();
-    if let Entry::App(_, current_course_json) = current_course_json {
-        let current_course =
-            Course::try_from(current_course_json).expect("Entry at this address is not Course");
-        let new_version_course = Course::new_with_moduels(
-            title,
-            current_course.teacher_address,
-            current_course.modules,
-        );
-        let new_version_course_entry = Entry::App("course".into(), new_version_course.into());
-        let edited_course_address =
-            hdk::api::update_entry(new_version_course_entry, course_address)?;
-        Ok(edited_course_address)
-    } else {
-        Err("Course has not found!".into())
-    }
+pub fn update(
+    title: String,
+    modules_addresses: Vec<Address>,
+    course_address: &Address,
+) -> ZomeApiResult<Address> {
+    let course: Course = hdk::utils::get_as_type(course_address.clone())?;
+
+    let new_version_course = Course::from(title, course.teacher_address, modules_addresses);
+    let new_version_course_entry = Entry::App("course".into(), new_version_course.into());
+
+    hdk::update_entry(new_version_course_entry, course_address)
 }
 
 pub fn delete(address: Address) -> ZomeApiResult<Address> {
@@ -166,30 +160,6 @@ pub fn list() -> ZomeApiResult<Vec<Address>> {
     Ok(addresses)
 }
 
-pub fn is_user_course_owner(
-    _chain_entries: &Vec<Entry>,
-    _course_address: &Address,
-) -> Result<(), String> {
-    Ok(())
-    //TODO: I need to iter on chain-entires and find entry of course and check for the ownership
-    // let course = chain_entries
-    //     .iter()
-    //     .filter(|entry| entry.address() == course_address.to_owned())
-    //     .filter_map(|entry| {
-    //         if let Entry::App(_, entry_data) = entry {
-    //             Some(Course::try_from(entry_data.clone()).unwrap())
-    //         } else {
-    //             None
-    //         }
-    //     })
-    //     .next();
-    // //.Ok()?;
-
-    // //.ok_or(ZomeApiError::HashNotFound)?;
-
-    // validate_course_ownership(&course.unwrap().teacher_address)
-}
-
 pub fn add_module_to_course(
     course_address: &Address,
     module_address: &Address,
@@ -199,34 +169,7 @@ pub fn add_module_to_course(
         let mut course_entry = Course::try_from(current_course.clone())
             .expect("Entry at this address is not Course. You sent a wrong address");
         course_entry.modules.push(module_address.clone());
-        hdk::api::update_entry(
-            Entry::App("course".into(), course_entry.into()),
-            course_address,
-        )
-    } else {
-        panic!("This address is not a valid address")
-    }
-}
-
-pub fn update_module_in_course(
-    course_address: &Address,
-    old_module_address: &Address,
-    new_module_address: &Address,
-) -> ZomeApiResult<Address> {
-    let current_course = hdk::get_entry(course_address).unwrap().unwrap();
-    if let Entry::App(_, current_course) = current_course {
-        let mut course_entry = Course::try_from(current_course.clone())
-            .expect("Entry at this address is not Course. You sent a wrong address");
-        // remove the old address from Modules,
-        let index = course_entry
-            .modules
-            .iter()
-            .position(|x| x == old_module_address)
-            .unwrap();
-        course_entry.modules.remove(index);
-        // add new module address to list of Modules
-        course_entry.modules.push(new_module_address.clone());
-        hdk::api::update_entry(
+        hdk::update_entry(
             Entry::App("course".into(), course_entry.into()),
             course_address,
         )
