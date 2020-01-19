@@ -113,8 +113,8 @@ fn validate_course_ownership(course_owner_address: &Address) -> Result<(), Strin
 /********************************************** */
 /// Course Helper Functions: CRUD
 
-pub fn create(title: &str) -> ZomeApiResult<Address> {
-    let new_course = Course::new(title.into(), AGENT_ADDRESS.to_string().into());
+pub fn create(title: String) -> ZomeApiResult<Address> {
+    let new_course = Course::new(title, AGENT_ADDRESS.to_string().into());
     let new_course_entry = Entry::App("course".into(), new_course.into());
     let new_course_address = hdk::commit_entry(&new_course_entry)?;
 

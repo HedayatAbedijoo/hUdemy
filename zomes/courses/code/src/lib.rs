@@ -24,10 +24,13 @@ use hdk_proc_macros::zome;
 //use std::convert::TryInto;
 
 /******************************** */
+mod content;
 mod course;
 mod module;
+use course::Course;
+
 #[zome]
-mod Course {
+mod course_zome {
 
   #[init]
   fn init() {
@@ -39,6 +42,10 @@ mod Course {
     Ok(())
   }
 
+  #[zome_fn("hc_public")]
+  fn hello_holo(title: String) -> ZomeApiResult<String> {
+    Ok(title.into())
+  }
   /**************************** Course Entry Definition and Functions */
   #[entry_def]
   fn anchor_entry_definition() -> ValidatingEntryType {
@@ -52,7 +59,12 @@ mod Course {
 
   #[zome_fn("hc_public")]
   fn create_course(title: String) -> ZomeApiResult<Address> {
-    course::create(&title)
+    course::create(title)
+  }
+
+  #[zome_fn("hc_public")]
+  fn get_course(address: Address) -> ZomeApiResult<Course> {
+    hdk::utils::get_as_type(address)
   }
 
   #[zome_fn("hc_public")]
