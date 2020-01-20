@@ -52,30 +52,34 @@ pub fn course_entry_def() -> ValidatingEntryType {
         description: "this is the definition of course",
         sharing: Sharing::Public,
         validation_package: || {
-            hdk::ValidationPackageDefinition::ChainFull
+            hdk::ValidationPackageDefinition::Entry
         },
         validation: | validation_data: hdk::EntryValidationData<Course>| {
             match validation_data{
-                EntryValidationData::Create { entry, .. } => {
-                   validate_course_title(&entry.title)
+                EntryValidationData::Create { entry, validation_data } => {
+                    if !validation_data.sources().contains(&entry.teacher_address) {
+                        return Err(String::from("Only the teacher can create their courses"));
+                    }
+
+                    validate_course_title(&entry.title)
                 },
                 EntryValidationData::Modify { new_entry, old_entry, validation_data, .. } => {
-                    validate_course_title(&new_entry.title)?;
-
                     if new_entry.teacher_address != old_entry.teacher_address {
                         return Err(String::from("Cannot change the teacher of the course"));
                     }
 
-                    let chain_entries = validation_data.package.source_chain_entries.unwrap().clone();
+                    if !validation_data.sources().contains(&old_entry.teacher_address) {
+                        return Err(String::from("Only the teacher can modify their courses"));
+                    }
 
-                    validation::validate_chain_author(&old_entry.teacher_address, &chain_entries)?;
+                    validate_course_title(&new_entry.title)?;
 
                     Ok(())
                 },
                 EntryValidationData::Delete {old_entry, validation_data, .. } => {
-                    let chain_entries = validation_data.package.source_chain_entries.unwrap().clone();
-
-                    validation::validate_chain_author(&old_entry.teacher_address, &chain_entries)?;
+                    if !validation_data.sources().contains(&old_entry.teacher_address) {
+                        return Err(String::from("Only the teacher can delete their courses"));
+                    }
 
                     Ok(())
                 }

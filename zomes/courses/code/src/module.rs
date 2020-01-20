@@ -54,9 +54,10 @@ pub fn entry_def() -> ValidatingEntryType {
                 EntryValidationData::Create { entry, validation_data } => {
                     validate_module_title(&entry.title)?;
 
-                    let chain_entries = validation_data.package.source_chain_entries.unwrap().clone();
+                    let chain_entries = validation_data.clone().package.source_chain_entries.unwrap().clone();
+                    let sources = validation_data.sources();
 
-                    validation::validate_author_is_teacher_of_course(&chain_entries,&entry.course_address)?;
+                    validation::validate_teacher_signed_module(&chain_entries, &sources, &entry.course_address)?;
 
                     Ok(())
                 },
@@ -67,14 +68,19 @@ pub fn entry_def() -> ValidatingEntryType {
                         return Err(String::from("Cannot modify the course of a module"));
                     }
 
-                    let chain_entries = validation_data.package.source_chain_entries.unwrap().clone();
-                    validation::validate_author_is_teacher_of_course(&chain_entries, &new_entry.course_address)?;
+                    let chain_entries = validation_data.clone().package.source_chain_entries.unwrap().clone();
+                    let sources = validation_data.sources();
+                    
+                    validation::validate_teacher_signed_module(&chain_entries, &sources, &new_entry.course_address)?;
 
                     Ok(())
                 },
                 EntryValidationData::Delete { old_entry, validation_data, .. } => {
-                    let chain_entries = validation_data.package.source_chain_entries.unwrap().clone();
-                    validation::validate_author_is_teacher_of_course(&chain_entries, &old_entry.course_address)?;
+                    let chain_entries = validation_data.clone().package.source_chain_entries.unwrap().clone();
+
+                    let sources = validation_data.sources();
+
+                    validation::validate_teacher_signed_module(&chain_entries, &sources, &old_entry.course_address)?;
 
                     Ok(())
                 }
