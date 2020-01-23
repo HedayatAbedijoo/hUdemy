@@ -8,7 +8,6 @@ use hdk::holochain_json_api::{error::JsonError, json::JsonString};
 use hdk::holochain_persistence_api::cas::content::Address;
 use hdk::prelude::LinkMatch;
 use std::convert::TryFrom;
-
 /******************************************* */
 
 #[derive(Serialize, Deserialize, Debug, DefaultJson, Clone)]
@@ -53,13 +52,21 @@ pub fn entry_def() -> ValidatingEntryType {
             match  validation_data {
                 EntryValidationData::Create { entry, validation_data } => {
                     validate_module_title(&entry.title)?;
+                    let course: Course = hdk::utils::get_as_type(entry.course_address.clone())?;
+                    // this validation rule should be working. but I don't know why NOT working.
+                    // if !validation_data.sources().contains(&course.teacher_address) {
+                    //                   return Err(String::from("Only the teacher can create a module for it"));
+                    //               }
 
-                    let chain_entries = validation_data.clone().package.source_chain_entries.unwrap().clone();
+                    // this section just for bring things in test output to compare the values. we will delete it.
                     let sources = validation_data.sources();
-
-                    validation::validate_teacher_signed_module(&chain_entries, &sources, &entry.course_address)?;
-
-                    Ok(())
+                    let mut hashes = "".to_string();
+                    for i in 0..sources.len(){
+                        hashes.push_str(&sources[i].to_string());
+                    }
+                    let return_val = format!("course address:{}==>teacher address:{}==>sources:{}",entry.course_address, course.teacher_address,hashes);
+                    Err(return_val.into())
+                    //Ok(())
                 },
                 EntryValidationData::Modify { new_entry, old_entry, validation_data, .. } => {
                     validate_module_title(&new_entry.title)?;
@@ -70,7 +77,6 @@ pub fn entry_def() -> ValidatingEntryType {
 
                     let chain_entries = validation_data.clone().package.source_chain_entries.unwrap().clone();
                     let sources = validation_data.sources();
-                    
                     validation::validate_teacher_signed_module(&chain_entries, &sources, &new_entry.course_address)?;
 
                     Ok(())

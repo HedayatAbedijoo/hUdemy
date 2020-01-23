@@ -45,10 +45,6 @@ mod course_zome {
     Ok(())
   }
 
-  #[zome_fn("hc_public")]
-  fn hello_holo(title: String) -> ZomeApiResult<String> {
-    Ok(title.into())
-  }
   /**************************** Course Entry Definition and Functions */
   #[entry_def]
   fn anchor_entry_definition() -> ValidatingEntryType {
