@@ -165,7 +165,7 @@ orchestrator.registerScenario("Scenario3: Delete course", async (s, t) => {
 
 });
 
-*/
+
 orchestrator.registerScenario("Scenario4: Create new Module for a Course", async (s, t) => {
   const { alice, bob } = await s.players(
     { alice: conductorConfig, bob: conductorConfig },
@@ -209,11 +209,57 @@ orchestrator.registerScenario("Scenario4: Create new Module for a Course", async
   console.log(module);
   t.deepEqual(module, {
     title: "module 1 for course 1",
-    course_address: course_addr.Ok
+    course_address: course_addr.Ok,
+    timestamp: module.timestamp
   });
   await s.consistency();
 });
+*/
 
+orchestrator.registerScenario("Scenario5: Get All My Courses", async (s, t) => {
+  const { alice, bob } = await s.players(
+    { alice: conductorConfig, bob: conductorConfig },
+    true
+  );
+  const course_addr_1 = await alice.call(
+    "course_dna",
+    "courses",
+    "create_course",
+    {
+      title: "course for scenario 5-1"
+    }
+  );
+  console.log(course_addr_1);
+  t.ok(course_addr_1.Ok);
+
+  await s.consistency();
+
+  const course_addr_2 = await alice.call(
+    "course_dna",
+    "courses",
+    "create_course",
+    {
+      title: "course for scenario 5-2"
+    }
+  );
+  console.log(course_addr_2);
+  t.ok(course_addr_2.Ok);
+
+  await s.consistency();
+
+
+  const all_courses_alice = await alice.call("course_dna", "courses", "get_my_courses", {
+  });
+  t.true(all_courses_alice.Ok[0] != null);
+  t.true(all_courses_alice.Ok[1] != null);
+
+  const all_courses_bob = await bob.call("course_dna", "courses", "get_my_courses", {
+  });
+  t.true(all_courses_bob.Ok[0] == null);
+
+  await s.consistency();
+
+});
 // orchestrator.registerScenario("description of example test", async (s, t) => {
 //   const { alice, bob } = await s.players(
 //     { alice: conductorConfig, bob: conductorConfig },

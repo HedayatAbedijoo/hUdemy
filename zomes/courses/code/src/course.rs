@@ -5,8 +5,14 @@ use hdk::{
     AGENT_ADDRESS,
 };
 
+use crate::helper;
 use hdk::holochain_core_types::dna::entry_types::Sharing;
 use hdk::holochain_core_types::{entry::Entry, validation::EntryValidationData};
+use holochain_wasm_utils::api_serialization::{
+    get_entry::{GetEntryOptions, GetEntryResult},
+    get_links::GetLinksOptions,
+};
+
 use hdk::holochain_json_api::{error::JsonError, json::JsonString};
 use hdk::holochain_persistence_api::cas::content::Address;
 use hdk::prelude::AddressableContent;
@@ -19,6 +25,7 @@ use std::convert::TryFrom;
 pub struct Course {
     pub title: String,
     pub modules: Vec<Address>,
+    pub timestamp: u64,
     pub teacher_address: Address,
 }
 
@@ -29,13 +36,15 @@ impl Course {
             title: title,
             teacher_address: owner,
             modules: Vec::default(),
+            timestamp: helper::current_timestamp(),
         }
     }
-    pub fn from(title: String, owner: Address, modules: Vec<Address>) -> Self {
+    pub fn from(title: String, owner: Address, timestamp: u64, modules: Vec<Address>) -> Self {
         Course {
             title: title,
             teacher_address: owner,
             modules: modules,
+            timestamp: timestamp,
         }
     }
 
@@ -83,8 +92,20 @@ pub fn course_entry_def() -> ValidatingEntryType {
                     Ok(())
                 }
             }
-        }
-        /* 
+        },
+        links: [
+          from!(
+              "%agent_id",
+              link_type: "teacher->courses",
+              validation_package: || {
+                  hdk::ValidationPackageDefinition::ChainFull
+              }              ,
+              validation: | _validation_data: hdk::LinkValidationData | {
+                 Ok(())
+              }
+          )
+      ]
+        /*
          * Link from "%agent_id", with link type: "teacher->courses"
          * Link from "%agent_id", with link type: "student->courses"
          * Link to "%agent_id", with link type: "course->students"
@@ -134,6 +155,7 @@ pub fn create(title: String) -> ZomeApiResult<Address> {
     let new_course = Course::new(title, AGENT_ADDRESS.to_string().into());
     let new_course_entry = Entry::App("course".into(), new_course.into());
     let new_course_address = hdk::commit_entry(&new_course_entry)?;
+    hdk::link_entries(&AGENT_ADDRESS, &new_course_address, "teacher->courses", "")?;
 
     Ok(new_course_address)
 }
@@ -145,7 +167,12 @@ pub fn update(
 ) -> ZomeApiResult<Address> {
     let course: Course = hdk::utils::get_as_type(course_address.clone())?;
 
-    let new_version_course = Course::from(title, course.teacher_address, modules_addresses);
+    let new_version_course = Course::from(
+        title,
+        course.teacher_address,
+        course.timestamp,
+        modules_addresses,
+    );
     let new_version_course_entry = Entry::App("course".into(), new_version_course.into());
 
     hdk::update_entry(new_version_course_entry, course_address)
@@ -166,6 +193,16 @@ pub fn list() -> ZomeApiResult<Vec<Address>> {
     .addresses();
 
     Ok(addresses)
+}
+
+pub fn get_my_courses() -> ZomeApiResult<Vec<ZomeApiResult<GetEntryResult>>> {
+    hdk::get_links_result(
+        &AGENT_ADDRESS,
+        LinkMatch::Exactly("teacher->courses"),
+        LinkMatch::Any,
+        GetLinksOptions::default(),
+        GetEntryOptions::default(),
+    )
 }
 
 pub fn add_module_to_course(

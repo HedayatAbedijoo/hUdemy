@@ -2,13 +2,15 @@
 use hdk::prelude::*;
 
 use crate::course::Course;
+use crate::helper;
 use std::convert::TryFrom;
 /******************************************* */
 
 #[derive(Serialize, Deserialize, Debug, DefaultJson, Clone)]
 pub struct Module {
-    title: String,
-    course_address: Address,
+    pub title: String,
+    pub timestamp: u64,
+    pub course_address: Address,
 }
 
 impl Module {
@@ -16,7 +18,7 @@ impl Module {
         Module {
             title: title,
             course_address: course_address,
-            // content:Vec::default()
+            timestamp: helper::current_timestamp(),
         }
     }
 

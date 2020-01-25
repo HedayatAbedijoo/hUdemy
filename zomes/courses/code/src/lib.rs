@@ -29,7 +29,7 @@ mod content;
 mod course;
 mod module;
 use course::Course;
-
+mod helper;
 #[zome]
 mod course_zome {
 
@@ -82,7 +82,10 @@ mod course_zome {
   fn get_courses() -> ZomeApiResult<Vec<Address>> {
     course::list()
   }
-
+  #[zome_fn("hc_public")]
+  fn get_my_courses() -> ZomeApiResult<Vec<ZomeApiResult<GetEntryResult>>> {
+    course::get_my_courses()
+  }
   /**************************** Module Entry Definition & Functions */
   #[entry_def]
   fn module_entry_definition() -> ValidatingEntryType {

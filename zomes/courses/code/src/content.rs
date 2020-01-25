@@ -16,6 +16,8 @@ pub struct Content {
     name: String,
     url: String,
     descritpion: String,
+    timestamp: u64,
+    module_address: Address,
 }
 
 /*
