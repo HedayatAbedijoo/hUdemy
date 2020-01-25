@@ -1,6 +1,6 @@
-import { LitElement, html } from "lit-element";
+import { LitElement, html } from 'lit-element';
 
-import "@authentic/mwc-card";
+import '@authentic/mwc-card';
 
 export class hUdemyModule extends LitElement {
   static get properties() {
