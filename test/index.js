@@ -183,38 +183,34 @@ orchestrator.registerScenario("Scenario4: Create new Module for a Course", async
   t.ok(course_addr.Ok);
 
   await s.consistency();
-
-  const new_module_addr = await bob.call("course_dna", "courses", "create_module", {
+  // Alice can create a module for course because she is the owner
+  const new_module_addr = await alice.call("course_dna", "courses", "create_module", {
     title: "module 1 for course 1",
     course_address: course_addr.Ok
   });
 
-  console.log("hedayat abedijoo");
   console.log(new_module_addr);
   t.ok(new_module_addr.Ok);
-  // await s.consistency();
+  await s.consistency();
 
-  // const moduleResult = await bob.call("course_dna", "courses", "get_entry", {
-  //   address: new_module_addr.Ok
-  // });
-  // const module = JSON.parse(moduleResult.Ok.App[1]);
-  // console.log(module);
-  // t.deepEqual(module, {
-  //   title: "module 1 for course 1",
-  //   course_address: course_addr.Ok
-  // });
+  // Bob can not create a module for course, because he is not the owner of course
+  const fail_add_module_addr = await bob.call("course_dna", "courses", "create_module", {
+    title: "module 1 for course 1",
+    course_address: course_addr.Ok
+  });
 
-  // const courseResult = await bob.call("course_dna", "courses", "get_entry", {
-  //   address: course_addr.Ok
-  // });
-  // const course = JSON.parse(courseResult.Ok.App[1]);
-  // console.log(course);
-  // t.deepEqual(course, {
-  //   title: "course for scenario 4",
-  //   teacher_address: alice.instance("course_dna").agentAddress,
-  //   modules: [new_module_addr]
-  // });
-  // Wait for all network activity to settle
+  t.error(fail_add_module_addr.Ok);
+  await s.consistency();
+
+  const moduleResult = await alice.call("course_dna", "courses", "get_entry", {
+    address: new_module_addr.Ok
+  });
+  const module = JSON.parse(moduleResult.Ok.App[1]);
+  console.log(module);
+  t.deepEqual(module, {
+    title: "module 1 for course 1",
+    course_address: course_addr.Ok
+  });
   await s.consistency();
 });
 
