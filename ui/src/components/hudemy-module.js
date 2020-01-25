@@ -1,8 +1,8 @@
 import { LitElement, html } from "lit-element";
 
-import "@material/mwc-drawer";
+import "@authentic/mwc-card";
 
-export class hUdemyCourses extends LitElement {
+export class hUdemyModule extends LitElement {
   static get properties() {
     return {
       myCourses: {
@@ -13,10 +13,7 @@ export class hUdemyCourses extends LitElement {
 
   render() {
     return html`
-      <mwc-drawer>
-        
-
-      </mwc-drawer>
+      <mwc-drawer> </mwc-drawer>
     `;
   }
 }

@@ -19,7 +19,9 @@
   "author": "hudemy-courses",
   "license": "MIT",
   "dependencies": {
+    "@authentic/mwc-card": "^0.9.0",
     "@authentic/mwc-list": "^0.9.0",
+    "@holochain/hc-web-client": "^0.5.1",
     "@material/mwc-button": "^0.12.0",
     "@material/mwc-dialog": "^0.12.0",
     "@material/mwc-drawer": "^0.12.0",
@@ -27,6 +29,8 @@
     "@material/mwc-tab-bar": "^0.12.0",
     "@material/mwc-top-app-bar": "^0.12.0",
     "apollo-boost": "^0.4.7",
+    "apollo-link-schema": "^1.2.4",
+    "graphql-tools": "^4.0.6",
     "lit-element": "^2.0.1",
     "lit-html": "^1.0.0"
   }
