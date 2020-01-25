@@ -1,12 +1,7 @@
 /************************ Import Required Libraries */
-use hdk::{entry_definition::ValidatingEntryType, error::ZomeApiResult, AGENT_ADDRESS};
+use hdk::prelude::*;
 
-use crate::{course::Course, validation};
-use hdk::holochain_core_types::dna::entry_types::Sharing;
-use hdk::holochain_core_types::{entry::Entry, validation::EntryValidationData};
-use hdk::holochain_json_api::{error::JsonError, json::JsonString};
-use hdk::holochain_persistence_api::cas::content::Address;
-use hdk::prelude::LinkMatch;
+use crate::course::Course;
 use std::convert::TryFrom;
 /******************************************* */
 
@@ -46,27 +41,16 @@ pub fn entry_def() -> ValidatingEntryType {
         description: "this is the definition of module",
         sharing: Sharing::Public,
         validation_package: || {
-            hdk::ValidationPackageDefinition::ChainFull
+            hdk::ValidationPackageDefinition::Entry
         },
         validation: | validation_data: hdk::EntryValidationData<Module>| {
             match  validation_data {
                 EntryValidationData::Create { entry, validation_data } => {
                     validate_module_title(&entry.title)?;
-                    let course: Course = hdk::utils::get_as_type(entry.course_address.clone())?;
-                    // this validation rule should be working. but I don't know why NOT working.
-                    // if !validation_data.sources().contains(&course.teacher_address) {
-                    //                   return Err(String::from("Only the teacher can create a module for it"));
-                    //               }
 
-                    // this section just for bring things in test output to compare the values. we will delete it.
-                    let sources = validation_data.sources();
-                    let mut hashes = "".to_string();
-                    for i in 0..sources.len(){
-                        hashes.push_str(&sources[i].to_string());
-                    }
-                    let return_val = format!("course address:{}==>teacher address:{}==>sources:{}",entry.course_address, course.teacher_address,hashes);
-                    Err(return_val.into())
-                    //Ok(())
+                    validate_teacher_of_module(&validation_data.sources(), &entry)?;
+
+                    Ok(())
                 },
                 EntryValidationData::Modify { new_entry, old_entry, validation_data, .. } => {
                     validate_module_title(&new_entry.title)?;
@@ -75,18 +59,12 @@ pub fn entry_def() -> ValidatingEntryType {
                         return Err(String::from("Cannot modify the course of a module"));
                     }
 
-                    let chain_entries = validation_data.clone().package.source_chain_entries.unwrap().clone();
-                    let sources = validation_data.sources();
-                    validation::validate_teacher_signed_module(&chain_entries, &sources, &new_entry.course_address)?;
+                    validate_teacher_of_module(&validation_data.sources(), &new_entry)?;
 
                     Ok(())
                 },
                 EntryValidationData::Delete { old_entry, validation_data, .. } => {
-                    let chain_entries = validation_data.clone().package.source_chain_entries.unwrap().clone();
-
-                    let sources = validation_data.sources();
-
-                    validation::validate_teacher_signed_module(&chain_entries, &sources, &old_entry.course_address)?;
+                    validate_teacher_of_module(&validation_data.sources(), &old_entry)?;
 
                     Ok(())
                 }
@@ -139,5 +117,24 @@ pub fn delete(module_address: Address) -> ZomeApiResult<()> {
 
     hdk::update_entry(course.entry(), &module.course_address)?;
 
+    Ok(())
+}
+
+/** Validation */
+
+pub fn validate_teacher_of_module(
+    signing_addresses: &Vec<Address>,
+    module: &Module,
+) -> ZomeApiResult<()> {
+    let course: Course = hdk::utils::get_as_type(module.course_address.clone())?;
+    // this validation rule should be working. but I don't know why NOT working.
+
+    hdk::debug(format!("{:?}", course))?;
+
+    if !signing_addresses.contains(&course.teacher_address) {
+        return Err(ZomeApiError::from(String::from(
+            "HOHOHO Only the teacher can create a module for it",
+        )));
+    }
     Ok(())
 }

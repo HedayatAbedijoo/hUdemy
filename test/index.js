@@ -191,7 +191,7 @@ orchestrator.registerScenario("Scenario4: Create new Module for a Course", async
 
   console.log("hedayat abedijoo");
   console.log(new_module_addr);
-  t.ok(new_module_addr.Ok);
+  t.notOk(new_module_addr.Ok);
   // await s.consistency();
 
   // const moduleResult = await bob.call("course_dna", "courses", "get_entry", {

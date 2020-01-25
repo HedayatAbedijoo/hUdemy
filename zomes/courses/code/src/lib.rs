@@ -28,8 +28,6 @@ use hdk_proc_macros::zome;
 mod content;
 mod course;
 mod module;
-mod utils;
-mod validation;
 use course::Course;
 
 #[zome]
