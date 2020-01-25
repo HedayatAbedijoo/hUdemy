@@ -84,6 +84,11 @@ pub fn course_entry_def() -> ValidatingEntryType {
                 }
             }
         }
+        /* 
+         * Link from "%agent_id", with link type: "teacher->courses"
+         * Link from "%agent_id", with link type: "student->courses"
+         * Link to "%agent_id", with link type: "course->students"
+         */
     )
 }
 
