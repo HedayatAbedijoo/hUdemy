@@ -65,19 +65,21 @@ pub fn entry_def() -> ValidatingEntryType {
                     if new_entry.course_address != old_entry.course_address {
                         return Err(String::from("Cannot modify the course of a module"));
                     }
+                    let course: Course = hdk::utils::get_as_type(new_entry.course_address.clone())?;
 
-                    let chain_entries = validation_data.clone().package.source_chain_entries.unwrap().clone();
-                    let sources = validation_data.sources();
-                    validation::validate_teacher_signed_module(&chain_entries, &sources, &new_entry.course_address)?;
+                    let agent_address = &validation_data.sources()[0];
+                    if agent_address!=&course.teacher_address {
+                                      return Err(String::from("Only the teacher can modify a module for it"));
+                                  }
 
                     Ok(())
                 },
                 EntryValidationData::Delete { old_entry, validation_data, .. } => {
-                    let chain_entries = validation_data.clone().package.source_chain_entries.unwrap().clone();
-
-                    let sources = validation_data.sources();
-
-                    validation::validate_teacher_signed_module(&chain_entries, &sources, &old_entry.course_address)?;
+                    let course: Course = hdk::utils::get_as_type(old_entry.course_address.clone())?;
+                    let agent_address = &validation_data.sources()[0];
+                    if agent_address!= &course.teacher_address {
+                                      return Err(String::from("Only the teacher can delete a module"));
+                                  }
 
                     Ok(())
                 }
