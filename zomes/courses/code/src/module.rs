@@ -1,12 +1,7 @@
 /************************ Import Required Libraries */
-use hdk::{entry_definition::ValidatingEntryType, error::ZomeApiResult, AGENT_ADDRESS};
+use hdk::prelude::*;
 
-use crate::{course::Course, validation};
-use hdk::holochain_core_types::dna::entry_types::Sharing;
-use hdk::holochain_core_types::{entry::Entry, validation::EntryValidationData};
-use hdk::holochain_json_api::{error::JsonError, json::JsonString};
-use hdk::holochain_persistence_api::cas::content::Address;
-use hdk::prelude::LinkMatch;
+use crate::course::Course;
 use std::convert::TryFrom;
 /******************************************* */
 
@@ -39,6 +34,17 @@ fn validate_module_title(title: &str) -> Result<(), String> {
     }
 }
 
+pub fn validate_author(signing_addresses: &Vec<Address>, module: &Module) -> ZomeApiResult<()> {
+    let course: Course = hdk::utils::get_as_type(module.course_address.clone())?;
+    hdk::debug(format!("{:?}", course))?;
+    if !signing_addresses.contains(&course.teacher_address) {
+        return Err(ZomeApiError::from(String::from(
+            "HOHOHO Only the teacher can create or modify a module for it",
+        )));
+    }
+    Ok(())
+}
+
 // Entry Definition
 pub fn entry_def() -> ValidatingEntryType {
     entry!(
@@ -46,17 +52,15 @@ pub fn entry_def() -> ValidatingEntryType {
         description: "this is the definition of module",
         sharing: Sharing::Public,
         validation_package: || {
-            hdk::ValidationPackageDefinition::ChainFull
+            hdk::ValidationPackageDefinition::Entry
         },
         validation: | validation_data: hdk::EntryValidationData<Module>| {
             match  validation_data {
                 EntryValidationData::Create { entry, validation_data } => {
                     validate_module_title(&entry.title)?;
-                    let course: Course = hdk::utils::get_as_type(entry.course_address.clone())?;
-                    let agent_address = &validation_data.sources()[0];
-                    if agent_address!=&course.teacher_address {
-                                      return Err(String::from("Only the teacher can create a module for it"));
-                                  }
+
+                    validate_author(&validation_data.sources(), &entry)?;
+
                     Ok(())
                 },
                 EntryValidationData::Modify { new_entry, old_entry, validation_data, .. } => {
@@ -65,21 +69,11 @@ pub fn entry_def() -> ValidatingEntryType {
                     if new_entry.course_address != old_entry.course_address {
                         return Err(String::from("Cannot modify the course of a module"));
                     }
-                    let course: Course = hdk::utils::get_as_type(new_entry.course_address.clone())?;
-
-                    let agent_address = &validation_data.sources()[0];
-                    if agent_address!=&course.teacher_address {
-                                      return Err(String::from("Only the teacher can modify a module for it"));
-                                  }
-
+                    validate_author(&validation_data.sources(), &new_entry)?;
                     Ok(())
                 },
                 EntryValidationData::Delete { old_entry, validation_data, .. } => {
-                    let course: Course = hdk::utils::get_as_type(old_entry.course_address.clone())?;
-                    let agent_address = &validation_data.sources()[0];
-                    if agent_address!= &course.teacher_address {
-                                      return Err(String::from("Only the teacher can delete a module"));
-                                  }
+                    validate_author(&validation_data.sources(), &old_entry)?;
 
                     Ok(())
                 }
