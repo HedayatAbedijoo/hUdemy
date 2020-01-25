@@ -1,19 +1,17 @@
 import { LitElement, html } from "lit-element";
 
-import "@authentic/mwc-card";
-
-export class hUdemyModule extends LitElement {
+export class hUdemyCourseDetail extends LitElement {
   static get properties() {
     return {
-      myCourses: {
-        type: Boolean
+      courseId: {
+        type: String
       }
     };
   }
 
   render() {
     return html`
-      <mwc-card> </mwc-card>
+      <mwc-drawer> </mwc-drawer>
     `;
   }
 }

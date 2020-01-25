@@ -5,7 +5,8 @@ export const resolvers = {
     }
   },
   Course: {
-
-
+    async students(parent) {
+      return [];
+    }
   }
 };
