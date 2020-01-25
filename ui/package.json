@@ -1,0 +1,33 @@
+{
+  "scripts": {
+    "storybook": "start-storybook --node-resolve --watch --open",
+    "storybook:build": "build-storybook",
+    "start:build": "cd dist && es-dev-server --open",
+    "build": "rimraf dist && rollup -c rollup.config.js",
+    "start": "es-dev-server --app-index index.html --node-resolve --open --watch"
+  },
+  "devDependencies": {
+    "@open-wc/demoing-storybook": "^1.0.1",
+    "@open-wc/building-rollup": "^0.15.1",
+    "rimraf": "^2.6.3",
+    "rollup": "^1.15.4",
+    "es-dev-server": "^1.5.0"
+  },
+  "name": "hudemy-courses",
+  "version": "0.0.0",
+  "description": "Webcomponent hudemy-courses following open-wc recommendations",
+  "author": "hudemy-courses",
+  "license": "MIT",
+  "dependencies": {
+    "@authentic/mwc-list": "^0.9.0",
+    "@material/mwc-button": "^0.12.0",
+    "@material/mwc-dialog": "^0.12.0",
+    "@material/mwc-drawer": "^0.12.0",
+    "@material/mwc-tab": "^0.12.0",
+    "@material/mwc-tab-bar": "^0.12.0",
+    "@material/mwc-top-app-bar": "^0.12.0",
+    "apollo-boost": "^0.4.7",
+    "lit-element": "^2.0.1",
+    "lit-html": "^1.0.0"
+  }
+}
