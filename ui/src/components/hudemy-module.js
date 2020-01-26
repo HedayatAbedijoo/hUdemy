@@ -9,7 +9,7 @@ import '@material/mwc-icon-button';
 
 import { sharedStyles } from '../shared-styles';
 import { getClient } from '../graphql';
-import { UPDATE_MODULE } from '../graphql/queries';
+import { UPDATE_MODULE, CREATE_CONTENT } from '../graphql/queries';
 
 export class hUdemyModule extends LitElement {
   static get properties() {
@@ -31,12 +31,40 @@ export class hUdemyModule extends LitElement {
           padding-top: 16px;
           padding-bottom: 16px;
         }
+
+        .content-title {
+          font-size: 18px;
+        }
+
+        hr {
+          padding: 0;
+          margin: 0;
+        }
+
+        .content-item {
+          padding: 4px;
+        }
+
+        .content-list {
+        }
       `
     ];
   }
 
   async createContent() {
     const client = await getClient();
+
+    client.mutate({
+      mutation: CREATE_CONTENT,
+      variables: {
+        moduleId: this.module.id,
+        content: {
+          name: this.contentName,
+          url: this.contentUrl,
+          description: this.contentDescription
+        }
+      }
+    });
   }
 
   async updateModule() {
@@ -58,9 +86,9 @@ export class hUdemyModule extends LitElement {
         <div class="column" style="width: 500px;">
           <mwc-textfield
             class="dialog-field"
-            label="Title"
+            label="Name"
             dialogInitialFocus
-            @input=${e => (this.moduleTitle = e.target.value)}
+            @input=${e => (this.contentName = e.target.value)}
           >
           </mwc-textfield>
           <mwc-textarea
@@ -80,7 +108,7 @@ export class hUdemyModule extends LitElement {
         <mwc-button
           slot="primaryAction"
           dialogAction="create"
-          @click=${() => this.createModule()}
+          @click=${() => this.createContent()}
         >
           Create
         </mwc-button>
@@ -137,15 +165,28 @@ export class hUdemyModule extends LitElement {
                 </span>
               `
             : html`
+                <span style="padding-bottom: 8px;">Contents</span>
                 <mwc-list>
-                  ${this.module.contents.map(
-                    content => html`
-                      <mwc-list-item @click=${() => window.open(conten.url)}>
-                        <span slot="primary">${content.title}</span>
-                        <span slot="secondary">${content.description}</span>
-                      </mwc-list-item>
-                    `
-                  )}
+                  <div class="content-list">
+                    ${this.module.contents.map(
+                      (content, index) => html`
+                        <mwc-list-item
+                          @click=${() => window.open(content.url)}
+                          class="content-item"
+                        >
+                          <div class="column">
+                            <span class="content-title">${content.name}</span>
+                            <span class="fading">${content.description}</span>
+                          </div>
+                        </mwc-list-item>
+                        ${index !== this.module.contents.length - 1
+                          ? html`
+                              <hr style="opacity: 0.6" />
+                            `
+                          : html``}
+                      `
+                    )}
+                  </div>
                 </mwc-list>
               `}
         </div>

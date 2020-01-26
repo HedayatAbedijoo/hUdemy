@@ -23,7 +23,7 @@ export const GET_COURSE_INFO = gql`
         title
         contents {
           id
-          title
+          name
           description
           url
         }
@@ -56,6 +56,17 @@ export const UPDATE_MODULE = gql`
     updateModule(moduleId: $moduleId, title: $title) {
       id
       title
+    }
+  }
+`;
+
+export const CREATE_CONTENT = gql`
+  mutation CreateContent($moduleId: ID!, $content: ContentInput!) {
+    createContent(moduleId: $moduleId, content: $content) {
+      id
+      name
+      description
+      url
     }
   }
 `;

@@ -12,7 +12,7 @@ test_agent = true
 
 [[dnas]]
 file = '/home/guillem/projects/holochain/hUdemy/dna/dist/dna.dna.json'
-hash = 'QmR58BASfbzSQ1wXELbPaw3Kz3q61wGWT7ki2KrAxH5aZC'
+hash = 'QmeGgcK988jZ23KrCUJjSKsLoDK5QsoS76XeNSJ3gxBaWu'
 id = 'hc-run-dna'
 
 [[instances]]

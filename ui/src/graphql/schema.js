@@ -19,7 +19,7 @@ export const typeDefs = gql`
 
   type Content {
     id: ID!
-    title: String!
+    name: String!
     description: String!
     url: String!
   }
@@ -30,7 +30,7 @@ export const typeDefs = gql`
   }
 
   input ContentInput {
-    title: String!
+    name: String!
     description: String!
     url: String!
   }
@@ -46,7 +46,7 @@ export const typeDefs = gql`
     createModule(courseId: ID!, title: String!): Module! @loadEntry
     updateModule(moduleId: ID!, title: String!): Module! @loadEntry
     deleteModule(moduleId: ID!): Module! @loadEntry
-    createContent(content: ContentInput!): Module! @loadEntry
+    createContent(moduleId: ID!, content: ContentInput!): Content! @loadEntry
   }
 `;
 

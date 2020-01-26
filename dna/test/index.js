@@ -44,7 +44,6 @@ const conductorConfig = Config.gen(
 );
 
 /*
-
 orchestrator.registerScenario("Scenario1: Create new course", async (s, t) => {
   const { alice, bob } = await s.players(
     { alice: conductorConfig, bob: conductorConfig },
@@ -56,6 +55,7 @@ orchestrator.registerScenario("Scenario1: Create new course", async (s, t) => {
     "create_course",
     {
       title: "course test 1"
+      , timestamp: 123
     }
   );
   console.log(course_addr);
@@ -70,13 +70,13 @@ orchestrator.registerScenario("Scenario1: Create new course", async (s, t) => {
   console.log(course);
   t.deepEqual(course, {
     title: "course test 1",
+    timestamp: 123,
     teacher_address: alice.instance("course_dna").agentAddress,
     modules: []
   });
   // Wait for all network activity to settle
   await s.consistency();
 });
-
 orchestrator.registerScenario("Scenario2: Update course title", async (s, t) => {
   const { alice, bob } = await s.players(
     { alice: conductorConfig, bob: conductorConfig },
@@ -88,6 +88,7 @@ orchestrator.registerScenario("Scenario2: Update course title", async (s, t) => 
     "create_course",
     {
       title: "new course test for update test"
+      , timestamp: 123
     }
   );
 
@@ -98,7 +99,8 @@ orchestrator.registerScenario("Scenario2: Update course title", async (s, t) => 
     {
       title: "course title updated",
       course_address: course_addr.Ok,
-      modules_addresses: []
+      modules_addresses: [],
+      timestamp: 123
 
     }
   );
@@ -113,6 +115,7 @@ orchestrator.registerScenario("Scenario2: Update course title", async (s, t) => 
   console.log(course);
   t.deepEqual(course, {
     title: "course title updated",
+    timestamp: 123,
     teacher_address: alice.instance("course_dna").agentAddress,
     modules: []
   });
@@ -120,7 +123,6 @@ orchestrator.registerScenario("Scenario2: Update course title", async (s, t) => 
 
 
 });
-
 orchestrator.registerScenario("Scenario3: Delete course", async (s, t) => {
   const { alice, bob } = await s.players(
     { alice: conductorConfig, bob: conductorConfig },
@@ -132,6 +134,7 @@ orchestrator.registerScenario("Scenario3: Delete course", async (s, t) => {
     "create_course",
     {
       title: "new course test for delete scenario"
+      , timestamp: 123
     }
   );
   await s.consistency();
@@ -152,20 +155,10 @@ orchestrator.registerScenario("Scenario3: Delete course", async (s, t) => {
     address: delete_result.Ok
   });
   t.deepEqual(courseResult.Ok.Deletion.deleted_entry_address, course_addr.Ok);
-  // t.deepEqual(courseResult, {
-  //   Ok:
-  //   {
-  //     Deletion: {
-  //       deleted_entry_address: delete_result.Ok
-  //     }
-  //   }
-  // });
-
   await s.consistency();
 
 });
 
-*/
 orchestrator.registerScenario("Scenario4: Create new Module for a Course", async (s, t) => {
   const { alice, bob } = await s.players(
     { alice: conductorConfig, bob: conductorConfig },
@@ -177,6 +170,7 @@ orchestrator.registerScenario("Scenario4: Create new Module for a Course", async
     "create_course",
     {
       title: "course for scenario 4"
+      , timestamp: 123
     }
   );
   console.log(course_addr);
@@ -186,17 +180,19 @@ orchestrator.registerScenario("Scenario4: Create new Module for a Course", async
   // Alice can create a module for course because she is the owner
   const new_module_addr = await alice.call("course_dna", "courses", "create_module", {
     title: "module 1 for course 1",
-    course_address: course_addr.Ok
+    course_address: course_addr.Ok,
+    timestamp: 456
   });
 
   console.log(new_module_addr);
-  t.notOk(new_module_addr.Ok);
-  // await s.consistency();
+  t.ok(new_module_addr.Ok);
+  await s.consistency();
 
   // Bob can not create a module for course, because he is not the owner of course
   const fail_add_module_addr = await bob.call("course_dna", "courses", "create_module", {
-    title: "module 1 for course 1",
-    course_address: course_addr.Ok
+    title: "module 1 for course 1 by bob",
+    course_address: course_addr.Ok,
+    timestamp: 980
   });
 
   t.error(fail_add_module_addr.Ok);
@@ -209,101 +205,252 @@ orchestrator.registerScenario("Scenario4: Create new Module for a Course", async
   console.log(module);
   t.deepEqual(module, {
     title: "module 1 for course 1",
-    course_address: course_addr.Ok
+    course_address: course_addr.Ok,
+    timestamp: 456
   });
   await s.consistency();
 });
 
-// orchestrator.registerScenario("description of example test", async (s, t) => {
-//   const { alice, bob } = await s.players(
-//     { alice: conductorConfig, bob: conductorConfig },
-//     true
-//   );
 
-//   const result = await alice.call("course_dna", "courses", "hello_holo", {
-//     title: "every thing is working"
-//   });
-//   t.deepEqual(result, { Ok: "every thing is working" });
-//   await s.consistency();
+orchestrator.registerScenario("Scenario5: Get All My Courses", async (s, t) => {
+  const { alice, bob } = await s.players(
+    { alice: conductorConfig, bob: conductorConfig },
+    true
+  );
+  const course_addr_1 = await alice.call(
+    "course_dna",
+    "courses",
+    "create_course",
+    {
+      title: "course for scenario 5-1",
+      timestamp: 123
+    }
+  );
+  console.log(course_addr_1);
+  t.ok(course_addr_1.Ok);
 
-//   console.log("Test1 create_course:");
-//   const course_addr = await alice.call(
-//     "course_dna",
-//     "courses",
-//     "create_course",
-//     {
-//       title: "first test course"
-//     }
-//   );
-//   console.log(course_addr);
-//   t.ok(course_addr.Ok);
-//   // Wait for all network activity to settle
-//   await s.consistency();
+  await s.consistency();
 
-//   const courseResult = await bob.call("course_dna", "courses", "get_entry", {
-//     address: course_addr.Ok
-//   });
-//   const course = JSON.parse(courseResult.Ok.App[1]);
-//   console.log("Test2 Get Course:");
-//   console.log(course);
-//   t.deepEqual(course, {
-//     title: "first test course",
-//     teacher_address: alice.instance("course_dna").agentAddress,
-//     modules: []
-//   });
-//   // Wait for all network activity to settle
-//   await s.consistency();
+  const course_addr_2 = await alice.call(
+    "course_dna",
+    "courses",
+    "create_course",
+    {
+      title: "course for scenario 5-2",
+      timestamp: 1234
+    }
+  );
+  console.log(course_addr_2);
+  t.ok(course_addr_2.Ok);
 
-//   let moduleAddr = await bob.call("course_dna", "courses", "create_module", {
-//     title: "new module",
-//     course_address: course_addr.Ok
-//   });
-//   t.notOk(moduleAddr.Ok);
+  await s.consistency();
 
-//   moduleAddr = await alice.call("course_dna", "courses", "create_module", {
-//     title: "new module",
-//     course_address: course_addr.Ok
-//   });
-//   t.ok(moduleAddr.Ok);
-//   await s.consistency();
 
-//   console.log("Test3: Create Module:");
-//   console.log(moduleAddr.Ok);
-//   const moduleResult = await bob.call("course_dna", "courses", "get_entry", {
-//     address: moduleAddr.Ok
-//   });
+  const all_courses_alice = await alice.call("course_dna", "courses", "get_my_courses", {
+  });
+  t.true(all_courses_alice.Ok[0] != null);
+  t.true(all_courses_alice.Ok[1] != null);
 
-//   const module = JSON.parse(moduleResult.Ok.App[1]);
+  const all_courses_bob = await bob.call("course_dna", "courses", "get_my_courses", {
+  });
+  t.true(all_courses_bob.Ok[0] == null);
 
-//   const updatedCourseResult = await alice.call(
-//     "course_dna",
-//     "courses",
-//     "get_entry",
-//     {
-//       address: module.course_address
-//     }
-//   );
-//   const updatedCourse = JSON.parse(updatedCourseResult.Ok.App[1]);
+  await s.consistency();
 
-//   console.log("Test4: Get Course Again:");
-//   console.log(updatedCourseResult.Ok);
+});
 
-//   // const something = JSON.parse(module_result.Ok);
-//   // console.log(something);
 
-//   t.deepEqual(updatedCourse, {
-//     title: "first test course",
-//     teacher_address: alice.instance("course_dna").agentAddress,
-//     modules: [moduleAddr.Ok]
-//   });
 
-//   //const course = await bob.call("course_dna", "courses", "get_course", { "address": module_result.Ok });
+orchestrator.registerScenario("Scenario6: Create new Content for a Module", async (s, t) => {
+  const { alice, bob } = await s.players(
+    { alice: conductorConfig, bob: conductorConfig },
+    true
+  );
+  const course_addr = await alice.call(
+    "course_dna",
+    "courses",
+    "create_course",
+    {
+      title: "course for scenario 5"
+      , timestamp: 123
+    }
+  );
+  console.log(course_addr);
+  t.ok(course_addr.Ok);
 
-//   // Wait for all network activity to settle
-//   await s.consistency();
-//   // // check for equality of the actual and expected results
-//   // // t.deepEqual(result, { Ok: { App: ['my_entry', '{"content":"sample content"}'] } })
-//   // t.ok(result.Ok);
-// });
+  await s.consistency();
+  const module_addr = await alice.call("course_dna", "courses", "create_module", {
+    title: "module 1 for course 1",
+    course_address: course_addr.Ok,
+    timestamp: 456
+  });
+
+  console.log(module_addr);
+  t.ok(module_addr.Ok);
+  await s.consistency();
+
+  const content_addr = await alice.call("course_dna", "courses", "create_content", {
+    name: "content 1 for module 1",
+    url: "https://youtube.com",
+    descritpion: "Holochain Intro",
+    module_address: module_addr.Ok,
+    timestamp: 789
+  });
+
+  console.log(content_addr);
+  t.ok(content_addr.Ok);
+  await s.consistency();
+});
+
+
+
+orchestrator.registerScenario("Scenario7: Get all contents of a module", async (s, t) => {
+  const { alice, bob } = await s.players(
+    { alice: conductorConfig, bob: conductorConfig },
+    true
+  );
+  const course_addr = await alice.call(
+    "course_dna",
+    "courses",
+    "create_course",
+    {
+      title: "course for scenario 5"
+      , timestamp: 123
+    }
+  );
+  console.log(course_addr);
+  t.ok(course_addr.Ok);
+
+  await s.consistency();
+  // Alice can create a module for course because she is the owner
+  const module_addr = await alice.call("course_dna", "courses", "create_module", {
+    title: "module 1 for course 1",
+    course_address: course_addr.Ok,
+    timestamp: 456
+  });
+
+  console.log(module_addr);
+  t.ok(module_addr.Ok);
+  await s.consistency();
+
+  const content_addr_1 = await alice.call("course_dna", "courses", "create_content", {
+    name: "content 1 for module 1",
+    url: "https://youtube.com",
+    descritpion: "Holochain Intro-Video",
+    module_address: module_addr.Ok,
+    timestamp: 7891
+  });
+
+  console.log(content_addr_1);
+  t.ok(content_addr_1.Ok);
+  await s.consistency();
+
+
+  const content_addr_2 = await alice.call("course_dna", "courses", "create_content", {
+    name: "content 2 for module 1",
+    url: "https://soundclould.com",
+    descritpion: "Holochain Intro-Sound",
+    module_address: module_addr.Ok,
+    timestamp: 7892
+  });
+
+  console.log(content_addr_2);
+  t.ok(content_addr_2.Ok);
+  await s.consistency();
+
+
+  const all_contents_of_module_1 = await alice.call("course_dna", "courses", "get_contents", {
+    module_address: module_addr.Ok
+  });
+
+  t.true(all_contents_of_module_1.Ok[0] != null);
+  t.true(all_contents_of_module_1.Ok[1] != null);
+
+  await s.consistency();
+});
+*/
+
+
+orchestrator.registerScenario("Scenario8: delete content from module", async (s, t) => {
+  const { alice, bob } = await s.players(
+    { alice: conductorConfig, bob: conductorConfig },
+    true
+  );
+  const course_addr = await alice.call(
+    "course_dna",
+    "courses",
+    "create_course",
+    {
+      title: "course for scenario 5"
+      , timestamp: 123
+    }
+  );
+  console.log(course_addr);
+  t.ok(course_addr.Ok);
+
+  await s.consistency();
+  // Alice can create a module for course because she is the owner
+  const module_addr = await alice.call("course_dna", "courses", "create_module", {
+    title: "module 1 for course 1",
+    course_address: course_addr.Ok,
+    timestamp: 456
+  });
+
+  console.log(module_addr);
+  t.ok(module_addr.Ok);
+  await s.consistency();
+
+  const content_addr_1 = await alice.call("course_dna", "courses", "create_content", {
+    name: "content 1 for module 1",
+    url: "https://youtube.com",
+    descritpion: "Holochain Intro-Video",
+    module_address: module_addr.Ok,
+    timestamp: 7891
+  });
+
+  console.log(content_addr_1);
+  t.ok(content_addr_1.Ok);
+  await s.consistency();
+
+
+  const content_addr_2 = await alice.call("course_dna", "courses", "create_content", {
+    name: "content 2 for module 1",
+    url: "https://soundclould.com",
+    descritpion: "Holochain Intro-Sound",
+    module_address: module_addr.Ok,
+    timestamp: 7892
+  });
+
+  console.log(content_addr_2);
+  t.ok(content_addr_2.Ok);
+  await s.consistency();
+
+
+  const all_contents_of_module_1 = await alice.call("course_dna", "courses", "get_contents", {
+    module_address: module_addr.Ok
+  });
+
+  t.true(all_contents_of_module_1.Ok[0] != null);
+  t.true(all_contents_of_module_1.Ok[1] != null);
+  await s.consistency();
+
+  const delete_content = await alice.call("course_dna", "courses", "delete_content", {
+    content_address: content_addr_1.Ok
+  });
+  console.log("Hedayat_abedijoo_");
+  console.log(delete_content);
+  t.ok(delete_content.Ok);
+
+  await s.consistency();
+
+  // const all_contents_of_module_1_again = await alice.call("course_dna", "courses", "get_contents", {
+  //   module_address: module_addr.Ok
+  // });
+
+  // t.true(all_contents_of_module_1.Ok[0] != null);
+  // t.true(all_contents_of_module_1.Ok[1] == null);
+
+  await s.consistency();
+});
 
 orchestrator.run();

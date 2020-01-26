@@ -10,7 +10,6 @@ export const resolvers = {
         'get_courses'
       )({});
 
-      console.log(result);
       return parseResponse(result);
     }
   },
@@ -20,8 +19,16 @@ export const resolvers = {
     }
   },
   Module: {
-    async contents() {
-      return [];
+    async contents(parent, _, { callZome }) {
+      const result = await callZome(
+        INSTANCE_NAME,
+        ZOME_NAME,
+        'get_contents'
+      )({
+        module_address: parent.id
+      });
+
+      return parseResponse(result);
     }
   },
   Mutation: {
@@ -31,6 +38,7 @@ export const resolvers = {
         ZOME_NAME,
         'create_course'
       )({
+        timestamp: getTimestamp(),
         title
       });
 
@@ -61,16 +69,16 @@ export const resolvers = {
       return parseResponse(result);
     },
     async createModule(_, { courseId, title }, { callZome }) {
-      console.log('result32');
       const result = await callZome(
         INSTANCE_NAME,
         ZOME_NAME,
         'create_module'
       )({
+        timestamp: getTimestamp(),
         course_address: courseId,
         title
       });
-      console.log('result', result);
+
       return parseResponse(result);
     },
     async updateModule(_, { moduleId, title }, { callZome }) {
@@ -96,14 +104,24 @@ export const resolvers = {
 
       return parseResponse(result);
     },
-    async createContent(_, { content }, { callZome }) {
+    async createContent(_, { content, moduleId }, { callZome }) {
       const result = await callZome(
         INSTANCE_NAME,
         ZOME_NAME,
         'create_content'
-      )({});
+      )({
+        timestamp: getTimestamp(),
+        name: content.name,
+        module_address: moduleId,
+        url: content.url,
+        description: content.description
+      });
 
       return parseResponse(result);
     }
   }
 };
+
+function getTimestamp() {
+  return Math.floor(Date.now() / 1000);
+}
