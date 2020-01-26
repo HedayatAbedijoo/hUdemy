@@ -36,11 +36,6 @@ export const sharedStyles = css`
     font-weight: bold;
   }
 
-  .placeholder-message {
-    font-size: 18px;
-    opacity: 0.6;
-  }
-
   .danger {
     --mdc-theme-primary: red;
   }

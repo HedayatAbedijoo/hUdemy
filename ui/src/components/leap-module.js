@@ -187,7 +187,7 @@ export class LeapModule extends LitElement {
 
   renderHeader() {
     return html`
-      <div class="row" style="padding-bottom: 8px; align-items: center;">
+      <div class="row" style="align-items: center;">
         <div style="flex: 1; align-items: center;" class="fill">
           ${this.renderTitle()}
         </div>
@@ -261,6 +261,50 @@ export class LeapModule extends LitElement {
     `;
   }
 
+  renderContent(content, index) {
+    return html`
+      <mwc-list-item
+        @click=${() => window.open(content.url)}
+        class="content-item"
+      >
+        <div class="row">
+          <div class="column" style="flex: 1;">
+            <span class="content-title">${content.name}</span>
+            <span class="fading">${content.description}</span>
+          </div>
+
+          ${this.editable
+            ? html`
+                <div class="row">
+                  <mwc-icon-button
+                    icon="edit"
+                    label="Edit content"
+                    @click=${e => {
+                      e.stopPropagation();
+                      this.showContentDialog(content);
+                    }}
+                  ></mwc-icon-button>
+                  <mwc-icon-button
+                    icon="delete"
+                    label="Delete content"
+                    @click=${e => {
+                      e.stopPropagation();
+                      this.deleteContent(content.id);
+                    }}
+                  ></mwc-icon-button>
+                </div>
+              `
+            : html``}
+        </div>
+      </mwc-list-item>
+      ${index !== this.module.contents.length - 1
+        ? html`
+            <hr style="opacity: 0.6" />
+          `
+        : html``}
+    `;
+  }
+
   render() {
     return html`
       ${this.renderCreateContentDialog()}
@@ -270,55 +314,15 @@ export class LeapModule extends LitElement {
           ${this.renderHeader()}
           ${this.module.contents.length === 0
             ? html`
-                <span class="placeholder-message">
-                  There are no contents in this module
-                </span>
+                <leap-empty-placeholder
+                  message="There are no contents in this module"
+                ></leap-empty-placeholder>
               `
             : html`
-                <mwc-list>
+                <mwc-list style="padding-top: 8px; padding-bottom: 8px;">
                   <div class="content-list">
-                    ${this.module.contents.map(
-                      (content, index) => html`
-                        <mwc-list-item
-                          @click=${() => window.open(content.url)}
-                          class="content-item"
-                        >
-                          <div class="row">
-                            <div class="column" style="flex: 1;">
-                              <span class="content-title">${content.name}</span>
-                              <span class="fading">${content.description}</span>
-                            </div>
-
-                            ${this.editable
-                              ? html`
-                                  <div class="row">
-                                    <mwc-icon-button
-                                      icon="edit"
-                                      label="Edit content"
-                                      @click=${e => {
-                                        e.stopPropagation();
-                                        this.showContentDialog(content);
-                                      }}
-                                    ></mwc-icon-button>
-                                    <mwc-icon-button
-                                      icon="delete"
-                                      label="Delete content"
-                                      @click=${e => {
-                                        e.stopPropagation();
-                                        this.deleteContent(content.id);
-                                      }}
-                                    ></mwc-icon-button>
-                                  </div>
-                                `
-                              : html``}
-                          </div>
-                        </mwc-list-item>
-                        ${index !== this.module.contents.length - 1
-                          ? html`
-                              <hr style="opacity: 0.6" />
-                            `
-                          : html``}
-                      `
+                    ${this.module.contents.map((content, index) =>
+                      this.renderContent(content, index)
                     )}
                   </div>
                 </mwc-list>

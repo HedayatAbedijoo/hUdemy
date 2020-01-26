@@ -115,19 +115,13 @@ export class LeapCourseDetail extends LitElement {
     `;
   }
 
-  renderPlacholder(message) {
-    return html`
-      <div class="fill center-content">
-        <span class="placeholder-message">
-          ${message}
-        </span>
-      </div>
-    `;
-  }
-
   renderModules() {
     if (this.course.modules.length === 0)
-      return this.renderPlacholder('There are no modules in this course');
+      return html`
+        <leap-empty-placeholder
+          message="There are no modules in this course"
+        ></leap-empty-placeholder>
+      `;
 
     return html`
       <div class="column">
@@ -219,9 +213,11 @@ export class LeapCourseDetail extends LitElement {
 
   renderStudentsList() {
     if (this.course.students.length === 0)
-      return this.renderPlacholder(
-        'There are no students enrolled in this course'
-      );
+      return html`
+        <leap-empty-placeholder
+          message="There are no students enrolled in this course"
+        ></leap-empty-placeholder>
+      `;
 
     return html`
       <mwc-list>
@@ -264,12 +260,12 @@ export class LeapCourseDetail extends LitElement {
           ${this.renderCourseInfo()}
 
           <div class="row">
-            <div class="column" style="flex: 1; padding-right: 24px;">
+            <div class="column" style="flex: 3; padding-right: 24px;">
               <h3>Modules</h3>
               ${this.renderModules()}
             </div>
 
-            <div class="column">
+            <div class="column" style="flex: 1;">
               <h3>Students</h3>
               ${this.renderStudentsList()}
             </div>

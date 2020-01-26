@@ -55,26 +55,25 @@ export class LeapCoursesList extends LitElement {
     }
   }
 
-  renderEmptyPlaceholder() {
-    return html`
-      <div class="fill center-content">
-        <h3 class="fading">There are no courses in this category</h3>
-      </div>
-    `;
-  }
-
   render() {
     if (!this.courses)
       return html`
-        <div class="fill center-content">
+        <div class="fill center-content" style="align-self: center;">
           <mwc-circular-progress></mwc-circular-progress>
         </div>
       `;
 
-    if (this.courses.length === 0) return this.renderEmptyPlaceholder();
+    if (this.courses.length === 0)
+      return html`
+        <div class="fill center-content" style="align-self: center;">
+          <leap-empty-placeholder
+            message="There are no courses in this category"
+          ></leap-empty-placeholder>
+        </div>
+      `;
 
     return html`
-      <mwc-list style="width: 500px;">
+      <mwc-list style="flex: 1;">
         ${this.courses.map(
           course => html`
             <mwc-list-item

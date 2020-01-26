@@ -24,6 +24,9 @@ export class LeapDashboard extends LitElement {
 
         .card-content {
           padding: 16px;
+          min-height: 200px;
+          display: flex;
+          flex-direction: column;
         }
 
         .fab {
@@ -32,8 +35,14 @@ export class LeapDashboard extends LitElement {
           bottom: 36px;
         }
 
+        .title {
+          font-size: 24px;
+        }
+
         leap-courses-list {
-          margin-top: 40px;
+          margin-top: 8px;
+          flex: 1;
+          display: flex;
         }
       `
     ];
@@ -126,6 +135,7 @@ export class LeapDashboard extends LitElement {
             <div class="card-content">
               <span class="title">Enrolled courses</span>
               <leap-courses-list
+                class="fill"
                 filter="enrolled-courses"
               ></leap-courses-list>
             </div>
