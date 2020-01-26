@@ -1,9 +1,11 @@
-import { hUdemyApp } from './components/hudemy-app';
-import { hUdemyCoursesDrawer } from './components/hudemy-courses-drawer';
-import { hUdemyCourseDetail } from './components/hudemy-course-detail';
-import { hUdemyModule } from './components/hudemy-module';
+import { LeapDashboard } from './components/leap-dashboard';
+import { LeapApp } from './components/leap-app';
+import { LeapCoursesList } from './components/leap-courses-list';
+import { LeapCourseDetail } from './components/leap-course-detail';
+import { LeapModule } from './components/leap-module';
 
-customElements.define('hudemy-course-detail', hUdemyCourseDetail);
-customElements.define('hudemy-courses-drawer', hUdemyCoursesDrawer);
-customElements.define('hudemy-app', hUdemyApp);
-customElements.define('hudemy-module', hUdemyModule);
+customElements.define('leap-course-detail', LeapCourseDetail);
+customElements.define('leap-courses-list', LeapCoursesList);
+customElements.define('leap-app', LeapApp);
+customElements.define('leap-dashboard', LeapDashboard);
+customElements.define('leap-module', LeapModule);

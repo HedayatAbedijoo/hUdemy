@@ -32,7 +32,7 @@ export const sharedStyles = css`
   }
 
   .title {
-    font-size: 24px;
+    font-size: 20px;
     font-weight: bold;
   }
 

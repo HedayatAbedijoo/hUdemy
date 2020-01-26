@@ -2,8 +2,10 @@ import { LitElement, html, css } from 'lit-element';
 
 import '@authentic/mwc-circular-progress';
 import '@material/mwc-button';
+import '@material/mwc-icon-button';
 
 import { sharedStyles } from '../shared-styles';
+import { router } from '../router';
 import { getClient } from '../graphql';
 import {
   GET_COURSE_INFO,
@@ -12,7 +14,7 @@ import {
   DELETE_COURSE
 } from '../graphql/queries';
 
-export class hUdemyCourseDetail extends LitElement {
+export class LeapCourseDetail extends LitElement {
   static get properties() {
     return {
       courseId: {
@@ -132,10 +134,10 @@ export class hUdemyCourseDetail extends LitElement {
         ${this.course.modules.map(
           module =>
             html`
-              <hudemy-module
+              <leap-module
                 .module=${module}
                 .editable=${this.userIsTeacher()}
-              ></hudemy-module>
+              ></leap-module>
             `
         )}
       </div>
@@ -170,44 +172,48 @@ export class hUdemyCourseDetail extends LitElement {
 
   renderCourseInfo() {
     return html`
-      <div class="row center-content" style="padding-bottom: 24px;">
-        <div class="column fill">
-          <h2>${this.course.title}</h2>
-          <span>Taught by ${this.course.teacher_address}</span>
-        </div>
+      <mwc-card class="fill">
+        <div class="row center-content" style="padding: 24px;">
+          <div class="column fill">
+            <span class="title" style="padding-bottom: 16px;"
+              >${this.course.title}</span
+            >
+            <span>Taught by ${this.course.teacher_address}</span>
+          </div>
 
-        ${this.userIsTeacher()
-          ? html`
-              <div class="column">
-                <mwc-button
-                  icon="add"
-                  label="Add module"
-                  raised
-                  style="padding-bottom: 8px;"
-                  @click=${() =>
-                    (this.shadowRoot.getElementById(
-                      'create-module-dialog'
-                    ).open = true)}
-                ></mwc-button>
+          ${this.userIsTeacher()
+            ? html`
+                <div class="column">
+                  <mwc-button
+                    icon="add"
+                    label="Add module"
+                    raised
+                    style="padding-bottom: 8px;"
+                    @click=${() =>
+                      (this.shadowRoot.getElementById(
+                        'create-module-dialog'
+                      ).open = true)}
+                  ></mwc-button>
 
+                  <mwc-button
+                    icon="delete"
+                    label="Delete course"
+                    outlined
+                    class="danger"
+                    @click=${() => this.deleteCourse()}
+                  ></mwc-button>
+                </div>
+              `
+            : html`
                 <mwc-button
-                  icon="delete"
-                  label="Delete course"
+                  icon="school"
+                  label="Enrol in this course"
                   outlined
-                  class="danger"
-                  @click=${() => this.deleteCourse()}
+                  @click=${() => this.enrolInCourse()}
                 ></mwc-button>
-              </div>
-            `
-          : html`
-              <mwc-button
-                icon="school"
-                label="Enrol in this course"
-                outlined
-                @click=${() => this.enrolInCourse()}
-              ></mwc-button>
-            `}
-      </div>
+              `}
+        </div>
+      </mwc-card>
     `;
   }
 
@@ -241,18 +247,32 @@ export class hUdemyCourseDetail extends LitElement {
     return html`
       ${this.renderCreateModuleDialog()}
 
-      <div class="column" style="position: relative; padding: 16px;">
-        ${this.renderCourseInfo()}
+      <div class="column">
+        <mwc-top-app-bar>
+          <mwc-icon-button
+            icon="arrow_back"
+            slot="navigationIcon"
+            @click=${() => router.navigate('/home')}
+          ></mwc-icon-button>
+          <div slot="title">${this.course.title}</div>
+        </mwc-top-app-bar>
 
-        <div class="row">
-          <div class="column" style="flex: 1; padding-right: 24px;">
-            <h3>Modules</h3>
-            ${this.renderModules()}
-          </div>
+        <div
+          class="column"
+          style="position: relative; padding: 16px; width: 1000px; align-self: center;"
+        >
+          ${this.renderCourseInfo()}
 
-          <div class="column">
-            <h3>Students</h3>
-            ${this.renderStudentsList()}
+          <div class="row">
+            <div class="column" style="flex: 1; padding-right: 24px;">
+              <h3>Modules</h3>
+              ${this.renderModules()}
+            </div>
+
+            <div class="column">
+              <h3>Students</h3>
+              ${this.renderStudentsList()}
+            </div>
           </div>
         </div>
       </div>

@@ -39,19 +39,18 @@ export const typeDefs = gql`
 
   type Mutation {
     createCourse(title: String!): Course! @loadEntry
-    updateCourse(
-      courseId: ID!
-      title: String!
-      modulesIds: [ID!]!
-    ): Course! @loadEntry
+    updateCourse(courseId: ID!, title: String!, modulesIds: [ID!]!): Course!
+      @loadEntry
     deleteCourse(courseId: ID!): ID
     createModule(courseId: ID!, title: String!): Module! @loadEntry
     updateModule(moduleId: ID!, title: String!): Module! @loadEntry
     deleteModule(moduleId: ID!): ID
     createContent(moduleId: ID!, content: ContentInput!): Content! @loadEntry
+    updateContent(contentId: ID!, content: ContentInput!): Content! @loadEntry
+    deleteContent(contentId: ID!): ID
     enrolInCourse(courseId: ID!): Course! @loadEntry
   }
 `;
 
-/*     
+/*
  */

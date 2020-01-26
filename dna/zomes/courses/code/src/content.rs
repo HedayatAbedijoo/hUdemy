@@ -123,12 +123,21 @@ pub fn get_contents(module_address: &Address) -> ZomeApiResult<Vec<Address>> {
     let links = hdk::get_links(
         &module_address,
         LinkMatch::Exactly("module->contents"),
-        LinkMatch::Any
+        LinkMatch::Any,
     )?;
 
     Ok(links.addresses())
 }
 pub fn delete(content_address: Address) -> ZomeApiResult<Address> {
+    let content: Content = hdk::utils::get_as_type(content_address.clone())?;
+
+    hdk::remove_link(
+        &content.module_address,
+        &content_address,
+        "module->contents",
+        "",
+    )?;
+
     hdk::remove_entry(&content_address)
 }
 

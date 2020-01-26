@@ -12,7 +12,7 @@ export const GET_COURSES = gql`
 `;
 
 export const GET_COURSE_INFO = gql`
-  query GetCourseInfo($courseId: String) {
+  query GetCourseInfo($courseId: String!) {
     myAddress
     course(courseId: $courseId) {
       id
@@ -34,7 +34,7 @@ export const GET_COURSE_INFO = gql`
 `;
 
 export const CREATE_COURSE = gql`
-  mutation CreateCourse($title: String) {
+  mutation CreateCourse($title: String!) {
     createCourse(title: $title) {
       id
       title
@@ -44,14 +44,31 @@ export const CREATE_COURSE = gql`
 `;
 
 export const DELETE_COURSE = gql`
-  mutation DeleteCourse($courseId: ID) {
+  mutation DeleteCourse($courseId: ID!) {
     deleteCourse(courseId: $courseId)
   }
 `;
 
 export const DELETE_MODULE = gql`
-  mutation DeleteModule($moduleId: ID) {
+  mutation DeleteModule($moduleId: ID!) {
     deleteModule(moduleId: $moduleId)
+  }
+`;
+
+export const DELETE_CONTENT = gql`
+  mutation DeleteContent($contentId: ID!) {
+    deleteContent(contentId: $contentId)
+  }
+`;
+
+export const UPDATE_CONTENT = gql`
+  mutation UpdateContent($contentId: ID, $content: ContentInput!) {
+    updateContent(contentId: $contentId, content: $content) {
+      id
+      name
+      description
+      url
+    }
   }
 `;
 

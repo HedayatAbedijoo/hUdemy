@@ -12,10 +12,12 @@ import { getClient } from '../graphql';
 import {
   UPDATE_MODULE,
   CREATE_CONTENT,
-  DELETE_MODULE
+  DELETE_MODULE,
+  DELETE_CONTENT,
+  UPDATE_CONTENT
 } from '../graphql/queries';
 
-export class hUdemyModule extends LitElement {
+export class LeapModule extends LitElement {
   static get properties() {
     return {
       module: {
@@ -26,8 +28,16 @@ export class hUdemyModule extends LitElement {
       },
       editingTitle: {
         type: Boolean
+      },
+      editingContent: {
+        type: Object
       }
     };
+  }
+
+  constructor() {
+    super();
+    this.editingContent = {};
   }
 
   static get styles() {
@@ -52,26 +62,41 @@ export class hUdemyModule extends LitElement {
           padding: 4px;
         }
 
-        .content-list {
+        .action {
+          --mdc-icon-button-size: 40px;
         }
       `
     ];
   }
 
-  async createContent() {
+  async createOrUpdateContent() {
     const client = await getClient();
 
-    client.mutate({
-      mutation: CREATE_CONTENT,
-      variables: {
-        moduleId: this.module.id,
-        content: {
-          name: this.contentName,
-          url: this.contentUrl,
-          description: this.contentDescription
+    if (this.editingContent.id) {
+      client.mutate({
+        mutation: UPDATE_CONTENT,
+        variables: {
+          contentId: this.editingContent.id,
+          content: {
+            name: this.editingContent.name,
+            description: this.editingContent.description,
+            url: this.editingContent.url
+          }
         }
-      }
-    });
+      });
+    } else {
+      client.mutate({
+        mutation: CREATE_CONTENT,
+        variables: {
+          moduleId: this.module.id,
+          content: {
+            name: this.editingContent.name,
+            description: this.editingContent.description,
+            url: this.editingContent.url
+          }
+        }
+      });
+    }
   }
 
   async updateModule() {
@@ -97,29 +122,51 @@ export class hUdemyModule extends LitElement {
     });
   }
 
+  async deleteContent(contentId) {
+    const client = await getClient();
+    client.mutate({
+      mutation: DELETE_CONTENT,
+      variables: {
+        contentId: contentId
+      }
+    });
+  }
+
+  showContentDialog(existingContent) {
+    this.editingContent = existingContent || {};
+    this.shadowRoot.getElementById('create-content-dialog').open = true;
+  }
+
   renderCreateContentDialog() {
     return html`
-      <mwc-dialog id="create-content-dialog" heading="Add content">
+      <mwc-dialog
+        id="create-content-dialog"
+        .heading=${this.editingContent.id ? 'Edit content' : 'Add content'}
+      >
         <div class="column" style="width: 500px; margin-top: 16px;">
           <mwc-textfield
             outlined
             class="dialog-field"
             label="Name"
             dialogInitialFocus
-            @input=${e => (this.contentName = e.target.value)}
+            .value=${this.editingContent.name || ''}
+            @input=${e => (this.editingContent.name = e.target.value)}
           >
           </mwc-textfield>
           <mwc-textarea
+            outlined
             class="dialog-field"
             label="Description"
-            @input=${e => (this.contentDescription = e.target.value)}
+            .value=${this.editingContent.description || ''}
+            @input=${e => (this.editingContent.description = e.target.value)}
           >
           </mwc-textarea>
           <mwc-textfield
             outlined
             class="dialog-field"
             label="URL"
-            @input=${e => (this.contentUrl = e.target.value)}
+            .value=${this.editingContent.url || ''}
+            @input=${e => (this.editingContent.url = e.target.value)}
           >
           </mwc-textfield>
         </div>
@@ -127,7 +174,7 @@ export class hUdemyModule extends LitElement {
         <mwc-button
           slot="primaryAction"
           dialogAction="create"
-          @click=${() => this.createContent()}
+          @click=${() => this.createOrUpdateContent()}
         >
           Create
         </mwc-button>
@@ -140,8 +187,10 @@ export class hUdemyModule extends LitElement {
 
   renderHeader() {
     return html`
-      <div class="row">
-        <div style="flex: 1;">${this.renderTitle()}</div>
+      <div class="row" style="padding-bottom: 8px; align-items: center;">
+        <div style="flex: 1; align-items: center;" class="fill">
+          ${this.renderTitle()}
+        </div>
         ${this.renderToolbar()}
       </div>
     `;
@@ -149,7 +198,7 @@ export class hUdemyModule extends LitElement {
 
   renderTitle() {
     return html`
-      <div class="row" style="align-items: center; padding-bottom: 24px;">
+      <div class="row" style="align-items: center;">
         ${this.editable && this.editingTitle
           ? html`
               <mwc-textfield
@@ -172,11 +221,13 @@ export class hUdemyModule extends LitElement {
       return html`
         <div class="row">
           <mwc-icon-button
+            class="action"
             label="Save"
             icon="done"
             @click=${() => this.updateModule()}
           ></mwc-icon-button>
           <mwc-icon-button
+            class="action"
             label="Cancel"
             icon="clear"
             @click=${() => (this.editingTitle = false)}
@@ -187,21 +238,21 @@ export class hUdemyModule extends LitElement {
     return html`
       <div class="row">
         <mwc-icon-button
+          class="action"
           label="Edit"
           icon="edit"
           @click=${() => (this.editingTitle = true)}
         ></mwc-icon-button>
         <mwc-icon-button
           slot="action-buttons"
+          class="action"
           icon="add"
           label="Add content"
-          @click=${() =>
-            (this.shadowRoot.getElementById(
-              'create-content-dialog'
-            ).open = true)}
+          @click=${() => this.showContentDialog()}
         ></mwc-icon-button>
         <mwc-icon-button
           slot="action-buttons"
+          class="action"
           icon="delete"
           label="Delete module"
           @click=${() => this.deleteModule()}
@@ -224,7 +275,6 @@ export class hUdemyModule extends LitElement {
                 </span>
               `
             : html`
-                <span style="padding-bottom: 8px;">Contents</span>
                 <mwc-list>
                   <div class="content-list">
                     ${this.module.contents.map(
@@ -233,9 +283,34 @@ export class hUdemyModule extends LitElement {
                           @click=${() => window.open(content.url)}
                           class="content-item"
                         >
-                          <div class="column">
-                            <span class="content-title">${content.name}</span>
-                            <span class="fading">${content.description}</span>
+                          <div class="row">
+                            <div class="column" style="flex: 1;">
+                              <span class="content-title">${content.name}</span>
+                              <span class="fading">${content.description}</span>
+                            </div>
+
+                            ${this.editable
+                              ? html`
+                                  <div class="row">
+                                    <mwc-icon-button
+                                      icon="edit"
+                                      label="Edit content"
+                                      @click=${e => {
+                                        e.stopPropagation();
+                                        this.showContentDialog(content);
+                                      }}
+                                    ></mwc-icon-button>
+                                    <mwc-icon-button
+                                      icon="delete"
+                                      label="Delete content"
+                                      @click=${e => {
+                                        e.stopPropagation();
+                                        this.deleteContent(content.id);
+                                      }}
+                                    ></mwc-icon-button>
+                                  </div>
+                                `
+                              : html``}
                           </div>
                         </mwc-list-item>
                         ${index !== this.module.contents.length - 1

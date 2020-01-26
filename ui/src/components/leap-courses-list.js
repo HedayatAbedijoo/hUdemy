@@ -1,14 +1,15 @@
 import { LitElement, html } from 'lit-element';
 
-import '@material/mwc-drawer';
+import '@authentic/mwc-card';
 import '@authentic/mwc-list';
 import '@authentic/mwc-circular-progress';
 
+import { router } from '../router';
 import { sharedStyles } from '../shared-styles';
 import { getClient } from '../graphql';
 import { GET_COURSES } from '../graphql/queries';
 
-export class hUdemyCoursesDrawer extends LitElement {
+export class LeapCoursesList extends LitElement {
   static get properties() {
     return {
       filter: {
@@ -16,9 +17,6 @@ export class hUdemyCoursesDrawer extends LitElement {
       },
       courses: {
         type: Array
-      },
-      selectedCourseId: {
-        type: String
       }
     };
   }
@@ -39,7 +37,7 @@ export class hUdemyCoursesDrawer extends LitElement {
       query: GET_COURSES,
       variables: {
         filter: this.filter || 'all'
-      } 
+      }
     });
 
     this.courses = result.data.courses;
@@ -76,25 +74,17 @@ export class hUdemyCoursesDrawer extends LitElement {
     if (this.courses.length === 0) return this.renderEmptyPlaceholder();
 
     return html`
-      <mwc-drawer>
-        <mwc-list style="width: 500px;">
-          ${this.courses.map(
-            course => html`
-              <mwc-list-item
-                @click=${() => (this.selectedCourseId = course.id)}
-                .selected=${this.selectedCourseId === course.id}
-              >
-                <span>${course.title}</span>
-              </mwc-list-item>
-            `
-          )}
-        </mwc-list>
-
-        <div slot="appContent" class="fill center-content">
-          <hudemy-course-detail .courseId=${this.selectedCourseId} class="fill">
-          </hudemy-course-detail>
-        </div>
-      </mwc-drawer>
+      <mwc-list style="width: 500px;">
+        ${this.courses.map(
+          course => html`
+            <mwc-list-item
+              @click=${() => router.navigate(`course/${course.id}`)}
+            >
+              <span>${course.title}</span>
+            </mwc-list-item>
+          `
+        )}
+      </mwc-list>
     `;
   }
 }

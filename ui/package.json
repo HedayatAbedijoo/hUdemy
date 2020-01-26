@@ -12,10 +12,10 @@
     "webpack-cli": "^3.3.4",
     "webpack-dev-server": "^3.10.1"
   },
-  "name": "hudemy-app",
+  "name": "leap-app",
   "version": "0.0.0",
-  "description": "Webcomponent hudemy-app following open-wc recommendations",
-  "author": "hudemy-app",
+  "description": "Webcomponent leap-app following open-wc recommendations",
+  "author": "leap-app",
   "license": "MIT",
   "dependencies": {
     "@authentic/mwc-card": "^0.9.0",
@@ -37,6 +37,7 @@
     "graphql": "^14.5.8",
     "graphql-tools": "^4.0.6",
     "lit-element": "^2.0.1",
-    "lit-html": "^1.0.0"
+    "lit-html": "^1.0.0",
+    "navigo": "^7.1.2"
   }
 }

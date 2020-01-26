@@ -40,7 +40,7 @@ pub fn validate_author(signing_addresses: &Vec<Address>, module: &Module) -> Zom
     hdk::debug(format!("{:?}", course))?;
     if !signing_addresses.contains(&course.teacher_address) {
         return Err(ZomeApiError::from(String::from(
-            "HOHOHO Only the teacher can create or modify a module for it",
+            "Only the teacher can create or modify a module for it",
         )));
     }
     Ok(())

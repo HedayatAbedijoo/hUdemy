@@ -152,17 +152,19 @@ mod course_zome {
   fn get_contents(module_address: Address) -> ZomeApiResult<Vec<Address>> {
     content::get_contents(&module_address)
   }
+  
   #[zome_fn("hc_public")]
   fn delete_content(content_address: Address) -> ZomeApiResult<Address> {
     content::delete(content_address)
   }
+
   #[zome_fn("hc_public")]
   fn update_content(
     content_address: Address,
     name: String,
     url: String,
-    descritpion: String,
+    description: String,
   ) -> ZomeApiResult<Address> {
-    content::update(content_address, name, url, descritpion)
+    content::update(content_address, name, url, description)
   }
 }

@@ -139,6 +139,31 @@ export const resolvers = {
 
       return parseResponse(result);
     },
+    async updateContent(_, { content, contentId }, { callZome }) {
+      const result = await callZome(
+        INSTANCE_NAME,
+        ZOME_NAME,
+        'update_content'
+      )({
+        name: content.name,
+        content_address: contentId,
+        url: content.url,
+        description: content.description
+      });
+
+      return parseResponse(result);
+    },
+    async deleteContent(_, { contentId }, { callZome }) {
+      const result = await callZome(
+        INSTANCE_NAME,
+        ZOME_NAME,
+        'delete_content'
+      )({
+        content_address: contentId
+      });
+
+      return parseResponse(result);
+    },
     async enrolInCourse(_, { courseId }, { callZome }) {
       const result = await callZome(
         INSTANCE_NAME,
