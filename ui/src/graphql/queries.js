@@ -50,3 +50,12 @@ export const CREATE_MODULE = gql`
     }
   }
 `;
+
+export const UPDATE_MODULE = gql`
+  mutation UpdateModule($moduleId: ID!, $title: String!) {
+    updateModule(moduleId: $moduleId, title: $title) {
+      id
+      title
+    }
+  }
+`;

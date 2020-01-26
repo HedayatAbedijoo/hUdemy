@@ -29,6 +29,12 @@ export const typeDefs = gql`
     course(courseId: ID!): Course! @loadEntry
   }
 
+  input ContentInput {
+    title: String!
+    description: String!
+    url: String!
+  }
+
   type Mutation {
     createCourse(title: String!): Course! @loadEntry
     updateCourse(
@@ -40,6 +46,7 @@ export const typeDefs = gql`
     createModule(courseId: ID!, title: String!): Module! @loadEntry
     updateModule(moduleId: ID!, title: String!): Module! @loadEntry
     deleteModule(moduleId: ID!): Module! @loadEntry
+    createContent(content: ContentInput!): Module! @loadEntry
   }
 `;
 

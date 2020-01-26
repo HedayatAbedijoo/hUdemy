@@ -51,6 +51,14 @@ export class hUdemyCourseDetail extends LitElement {
     this.loadCourse();
   }
 
+  updated(changedValues) {
+    super.updated(changedValues);
+
+    if (changedValues.get('courseId')) {
+      this.loadCourse();
+    }
+  }
+
   async createModule() {
     const client = await getClient();
 
@@ -59,9 +67,18 @@ export class hUdemyCourseDetail extends LitElement {
       variables: {
         courseId: this.courseId,
         title: this.moduleTitle
-      }
+      },
+      refetchQueries: [
+        {
+          query: GET_COURSE_INFO,
+          variables: {
+            courseId: this.courseId
+          }
+        }
+      ]
     });
 
+    this.loadCourse();
   }
 
   renderCreateModuleDialog() {
@@ -88,25 +105,42 @@ export class hUdemyCourseDetail extends LitElement {
     `;
   }
 
+  renderModules() {
+    return html`
+      <div class="column">
+        ${this.course.modules.map(
+          module =>
+            html`
+              <hudemy-module
+                class="medium-padding"
+                .module=${module}
+              ></hudemy-module>
+            `
+        )}
+      </div>
+    `;
+  }
+
   render() {
     if (!this.course)
       return html`
-        <mwc-circular-progress></mwc-circular-progress>
+        <div class="column fill center-content" style="position: relative;">
+          <mwc-circular-progress></mwc-circular-progress>
+        </div>
       `;
 
     return html`
       ${this.renderCreateModuleDialog()}
-      <div class="column fill center-content" style="position: relative;">
+      <div class="fill" style="position: relative;">
         ${this.course.modules.length === 0
           ? html`
-              <h3 class="fading">There are no modules in this course</h3>
+              <div class="fill center-content">
+                <span class="placeholder-message">
+                  There are no modules in this course
+                </span>
+              </div>
             `
-          : this.course.modules.map(
-              module =>
-                html`
-                  <hudemy-module .module=${module}></hudemy-module>
-                `
-            )}
+          : this.renderModules()}
 
         <mwc-fab
           class="fab"

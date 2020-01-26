@@ -8,15 +8,14 @@ export class LoadEntityDirective extends SchemaDirectiveVisitor {
     let defaultResolver = field.resolve;
 
     field.resolve = async (parent, args, context, info) => {
-      let entityId = args.courseId;
+      let entityId;
 
-      console.log('hi1', entityId, field, parent);
-      if (!entityId) {
-        if (!defaultResolver) {
-          defaultResolver = parent => parent[field.name];
-        }
-
+      if (defaultResolver) {
         entityId = await defaultResolver(parent, args, context, info);
+      } else if (args.courseId) {
+        entityId = args.courseId;
+      } else {
+        entityId = parent[field.name];
       }
 
       if (!entityId) return null;

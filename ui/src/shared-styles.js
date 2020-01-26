@@ -18,11 +18,26 @@ export const sharedStyles = css`
   }
 
   .center-content {
+    display: flex;
     justify-content: center;
     align-items: center;
   }
 
   .fading {
     opacity: 0.7;
+  }
+
+  .medium-padding {
+    padding: 16px;
+  }
+
+  .title {
+    font-size: 24px;
+    font-weight: bold;
+  }
+
+  .placeholder-message {
+    font-size: 18px;
+    opacity: 0.6;
   }
 `;

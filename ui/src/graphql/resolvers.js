@@ -19,6 +19,11 @@ export const resolvers = {
       return [];
     }
   },
+  Module: {
+    async contents() {
+      return [];
+    }
+  },
   Mutation: {
     async createCourse(_, { title }, { callZome }) {
       const result = await callZome(
@@ -88,6 +93,15 @@ export const resolvers = {
       )({
         module_address: moduleId
       });
+
+      return parseResponse(result);
+    },
+    async createContent(_, { content }, { callZome }) {
+      const result = await callZome(
+        INSTANCE_NAME,
+        ZOME_NAME,
+        'create_content'
+      )({});
 
       return parseResponse(result);
     }

@@ -57,14 +57,16 @@ export class hUdemyCoursesDrawer extends LitElement {
   render() {
     if (!this.courses)
       return html`
-        <mwc-circular-progress></mwc-circular-progress>
+        <div class="fill center-content">
+          <mwc-circular-progress></mwc-circular-progress>
+        </div>
       `;
 
     if (this.courses.length === 0) return this.renderEmptyPlaceholder();
 
     return html`
       <mwc-drawer>
-        <mwc-list>
+        <mwc-list style="width: 500px;">
           ${this.courses.map(
             course => html`
               <mwc-list-item
@@ -81,7 +83,7 @@ export class hUdemyCoursesDrawer extends LitElement {
         </mwc-list>
 
         <div slot="appContent" class="fill center-content">
-          <hudemy-course-detail .courseId=${this.selectedCourseId}>
+          <hudemy-course-detail .courseId=${this.selectedCourseId} class="fill">
           </hudemy-course-detail>
         </div>
       </mwc-drawer>
