@@ -1,10 +1,11 @@
-import { makeExecutableSchema } from "graphql-tools";
-import { ApolloClient, InMemoryCache } from "apollo-boost";
+import { makeExecutableSchema } from 'graphql-tools';
+import { ApolloClient, InMemoryCache } from 'apollo-boost';
+import { SchemaLink } from 'apollo-link-schema';
 
-import { resolvers } from "./resolvers";
-import { typeDefs } from "./schema";
-import { LoadEntityDirective } from "./directive";
-import { getConnection } from "../connection";
+import { resolvers } from './resolvers';
+import { typeDefs } from './schema';
+import { LoadEntityDirective } from './directive';
+import { getConnection } from '../connection';
 
 let client = undefined;
 
@@ -28,4 +29,5 @@ export async function getClient() {
     connectToDevTools: true,
     link
   });
+  return client;
 }

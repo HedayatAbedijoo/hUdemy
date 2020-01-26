@@ -113,6 +113,15 @@ pub fn anchor_entry_def() -> ValidatingEntryType {
         ]
     )
 }
+
+pub fn anchor_entry() -> Entry {
+    Entry::App("anchor".into(), "course".into())
+}
+
+pub fn anchor_address() -> ZomeApiResult<Address> {
+    hdk::entry_address(&anchor_entry())
+}
+
 /*********************** Course Validations */
 fn validate_course_title(title: &str) -> Result<(), String> {
     if title.len() > 50 {
@@ -129,6 +138,8 @@ pub fn create(title: String) -> ZomeApiResult<Address> {
     let new_course = Course::new(title, AGENT_ADDRESS.to_string().into());
     let new_course_entry = Entry::App("course".into(), new_course.into());
     let new_course_address = hdk::commit_entry(&new_course_entry)?;
+
+    hdk::link_entries(&anchor_address()?, &new_course_address, "course_list", "")?;
 
     Ok(new_course_address)
 }
@@ -151,8 +162,7 @@ pub fn delete(address: Address) -> ZomeApiResult<Address> {
 }
 
 pub fn list() -> ZomeApiResult<Vec<Address>> {
-    let anchor_entry = Entry::App("course_list".into(), "course".into());
-    let anchor_address = hdk::commit_entry(&anchor_entry)?; // if Anchor exist, it returns the commited one.
+    let anchor_address = hdk::commit_entry(&anchor_entry())?; // if Anchor exist, it returns the commited one.
     let addresses = hdk::get_links(
         &anchor_address,
         LinkMatch::Exactly("course_list"),

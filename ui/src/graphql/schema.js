@@ -1,4 +1,4 @@
-import gql from "graphql-tag";
+import gql from 'graphql-tag';
 
 export const typeDefs = gql`
   directive @loadEntry on FIELD_DEFINITION
@@ -26,15 +26,20 @@ export const typeDefs = gql`
 
   type Query {
     allCourses: [Course!]! @loadEntry
+    course(courseId: ID!): Course! @loadEntry
   }
 
   type Mutation {
-    createCourse(title: String!): Course!
-    updateCourse(courseId: ID!, title: String!, modulesAddresses: [ID!]!): Course!
+    createCourse(title: String!): Course! @loadEntry
+    updateCourse(
+      courseId: ID!
+      title: String!
+      modulesIds: [ID!]!
+    ): Course! @loadEntry
     deleteCourse(courseId: ID!): ID!
-    createModule(courseId: ID!, title: String!): Module!
-    updateModule(moduleId: ID!, title: String!): Module!
-    deleteModule(moduleId: ID!, title: String!): Module!
+    createModule(courseId: ID!, title: String!): Module! @loadEntry
+    updateModule(moduleId: ID!, title: String!): Module! @loadEntry
+    deleteModule(moduleId: ID!): Module! @loadEntry
   }
 `;
 

@@ -1,11 +1,12 @@
-import { LitElement, html } from "lit-element";
+import { LitElement, html } from 'lit-element';
 
-import "@material/mwc-drawer";
-import "@authentic/mwc-list";
-import "@authentic/mwc-circular-progress";
+import '@material/mwc-drawer';
+import '@authentic/mwc-list';
+import '@authentic/mwc-circular-progress';
 
-import { getClient } from "../graphql";
-import { GET_ALL_COURSES } from "../graphql/queries";
+import { sharedStyles } from '../shared-styles';
+import { getClient } from '../graphql';
+import { GET_ALL_COURSES } from '../graphql/queries';
 
 export class hUdemyCoursesDrawer extends LitElement {
   static get properties() {
@@ -16,24 +17,41 @@ export class hUdemyCoursesDrawer extends LitElement {
       courses: {
         type: Array
       },
-      selectedCourse: {
+      selectedCourseId: {
         type: String
       }
     };
   }
 
+  static get styles() {
+    return sharedStyles;
+  }
+
   async firstUpdated() {
-    this.client = await getClient();
     this.loadCourses();
   }
 
   async loadCourses() {
     this.courses = undefined;
-    const result = await this.client.query({
+
+    const client = await getClient();
+    const result = await client.query({
       query: GET_ALL_COURSES
     });
 
     this.courses = result.data.allCourses;
+
+    if (this.courses.length > 0) {
+      this.selectedCourseId = this.courses[0].id;
+    }
+  }
+
+  renderEmptyPlaceholder() {
+    return html`
+      <div class="fill center-content">
+        <h3 class="fading">There are no courses in this category</h3>
+      </div>
+    `;
   }
 
   render() {
@@ -42,12 +60,19 @@ export class hUdemyCoursesDrawer extends LitElement {
         <mwc-circular-progress></mwc-circular-progress>
       `;
 
+    if (this.courses.length === 0) return this.renderEmptyPlaceholder();
+
     return html`
       <mwc-drawer>
         <mwc-list>
           ${this.courses.map(
             course => html`
-              <mwc-list-item class="row">
+              <mwc-list-item
+                type="two-line"
+                class="row"
+                @click=${() => (this.selectedCourseId = course.id)}
+                .selected=${this.selectedCourseId === course.id}
+              >
                 <span style="flex: 1;">${course.title}</span>
                 <span style="opacity: 0.5;">By ${course.teacher_address}</span>
               </mwc-list-item>
@@ -55,15 +80,9 @@ export class hUdemyCoursesDrawer extends LitElement {
           )}
         </mwc-list>
 
-        <div slot="appContent">
-          ${this.selectedCourseId
-            ? html`
-                <hudemy-course-detail .courseId=${this.selectedCourseId}>
-                </hudemy-course-detail>
-              `
-            : html`
-                <h3>No course selected</h3>
-              `}
+        <div slot="appContent" class="fill center-content">
+          <hudemy-course-detail .courseId=${this.selectedCourseId}>
+          </hudemy-course-detail>
         </div>
       </mwc-drawer>
     `;

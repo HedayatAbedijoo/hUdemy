@@ -1,12 +1,23 @@
-import { LitElement, html } from "lit-element";
+import { LitElement, html } from 'lit-element';
 
-import "@material/mwc-top-app-bar";
-import "@material/mwc-tab";
-import "@material/mwc-tab-bar";
+import '@material/mwc-top-app-bar';
+import '@material/mwc-tab';
+import '@material/mwc-tab-bar';
+import '@material/mwc-dialog';
+import '@material/mwc-textfield';
+import '@material/mwc-button';
 
-const tabs = ["enrolled-courses", "my-courses", "all-courses"];
+import { sharedStyles } from '../shared-styles';
+import { getClient } from '../graphql';
+import { CREATE_COURSE } from '../graphql/queries';
+
+const tabs = ['enrolled-courses', 'my-courses', 'all-courses'];
 
 export class hUdemyApp extends LitElement {
+  static get styles() {
+    return sharedStyles;
+  }
+
   firstUpdated() {
     this.activeTab = 0;
   }
@@ -19,11 +30,57 @@ export class hUdemyApp extends LitElement {
     };
   }
 
+  renderCreateCourseDialog() {
+    return html`
+      <mwc-dialog id="create-course-dialog" heading="Create course">
+        <mwc-textfield
+          label="Title"
+          dialogInitialFocus
+          @input=${e => (this.courseTitle = e.target.value)}
+        >
+        </mwc-textfield>
+
+        <mwc-button
+          slot="primaryAction"
+          dialogAction="create"
+          @click=${() => this.createCourse()}
+        >
+          Create
+        </mwc-button>
+        <mwc-button slot="secondaryAction" dialogAction="cancel">
+          Cancel
+        </mwc-button>
+      </mwc-dialog>
+    `;
+  }
+
+  async createCourse() {
+    const client = await getClient();
+
+    await client.mutate({
+      mutation: CREATE_COURSE,
+      variables: {
+        title: this.courseTitle
+      }
+    });
+  }
+
   render() {
     return html`
-      <div class="column">
+      ${this.renderCreateCourseDialog()}
+      <div class="column fill">
         <mwc-top-app-bar>
           <div slot="title">hUdemy</div>
+
+          <mwc-button
+            slot="actionItems"
+            label="Create course"
+            icon="add"
+            @click=${() =>
+              (this.shadowRoot.getElementById(
+                'create-course-dialog'
+              ).open = true)}
+          ></mwc-button>
         </mwc-top-app-bar>
 
         <mwc-tab-bar @activated=${e => (this.activeTab = e.detail.index)}>
@@ -32,7 +89,10 @@ export class hUdemyApp extends LitElement {
           <mwc-tab label="All courses"> </mwc-tab>
         </mwc-tab-bar>
 
-        <hudemy-courses .filter=${tabs[this.activeTab]}></hudemy-courses>
+        <hudemy-courses-drawer
+          class="fill"
+          .filter=${tabs[this.activeTab]}
+        ></hudemy-courses-drawer>
       </div>
     `;
   }
