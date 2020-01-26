@@ -85,6 +85,19 @@ mod course_zome {
   fn get_my_courses() -> ZomeApiResult<Vec<ZomeApiResult<GetEntryResult>>> {
     course::get_my_courses()
   }
+
+  #[zome_fn("hc_public")]
+  fn enrolle_me(course_address: Address) -> ZomeApiResult<Address> {
+    course::enrolle(course_address)
+  }
+
+  #[zome_fn("hc_public")]
+  fn get_all_students(
+    course_address: Address,
+  ) -> ZomeApiResult<Vec<ZomeApiResult<GetEntryResult>>> {
+    course::get_students(course_address)
+  }
+
   /**************************** Module Entry Definition & Functions */
   #[entry_def]
   fn module_entry_definition() -> ValidatingEntryType {
@@ -106,9 +119,42 @@ mod course_zome {
   }
 
   #[zome_fn("hc_public")]
-  fn delete_module(module_address: Address) -> ZomeApiResult<()> {
+  fn delete_module(module_address: Address) -> ZomeApiResult<Address> {
     module::delete(module_address)
   }
 
   /**************************** Content Zome Functions */
+  #[entry_def]
+  fn content_entry_definition() -> ValidatingEntryType {
+    content::module_entry_def()
+  }
+
+  #[zome_fn("hc_public")]
+  fn create_content(
+    name: String,
+    module_address: Address,
+    url: String,
+    timestamp: u64,
+    descritpion: String,
+  ) -> ZomeApiResult<Address> {
+    content::create(name, module_address, url, timestamp, descritpion)
+  }
+
+  #[zome_fn("hc_public")]
+  fn get_contents(module_address: Address) -> ZomeApiResult<Vec<ZomeApiResult<GetEntryResult>>> {
+    content::get_contents(&module_address)
+  }
+  #[zome_fn("hc_public")]
+  fn delete_content(content_address: Address) -> ZomeApiResult<Address> {
+    content::delete(content_address)
+  }
+  #[zome_fn("hc_public")]
+  fn update_content(
+    content_address: Address,
+    name: String,
+    url: String,
+    descritpion: String,
+  ) -> ZomeApiResult<Address> {
+    content::update(content_address, name, url, descritpion)
+  }
 }

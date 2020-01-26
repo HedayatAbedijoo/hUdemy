@@ -43,8 +43,7 @@ const conductorConfig = Config.gen(
   }
 );
 
-
-
+/*
 orchestrator.registerScenario("Scenario1: Create new course", async (s, t) => {
   const { alice, bob } = await s.players(
     { alice: conductorConfig, bob: conductorConfig },
@@ -258,6 +257,200 @@ orchestrator.registerScenario("Scenario5: Get All My Courses", async (s, t) => {
 
   await s.consistency();
 
+});
+
+
+
+orchestrator.registerScenario("Scenario6: Create new Content for a Module", async (s, t) => {
+  const { alice, bob } = await s.players(
+    { alice: conductorConfig, bob: conductorConfig },
+    true
+  );
+  const course_addr = await alice.call(
+    "course_dna",
+    "courses",
+    "create_course",
+    {
+      title: "course for scenario 5"
+      , timestamp: 123
+    }
+  );
+  console.log(course_addr);
+  t.ok(course_addr.Ok);
+
+  await s.consistency();
+  const module_addr = await alice.call("course_dna", "courses", "create_module", {
+    title: "module 1 for course 1",
+    course_address: course_addr.Ok,
+    timestamp: 456
+  });
+
+  console.log(module_addr);
+  t.ok(module_addr.Ok);
+  await s.consistency();
+
+  const content_addr = await alice.call("course_dna", "courses", "create_content", {
+    name: "content 1 for module 1",
+    url: "https://youtube.com",
+    descritpion: "Holochain Intro",
+    module_address: module_addr.Ok,
+    timestamp: 789
+  });
+
+  console.log(content_addr);
+  t.ok(content_addr.Ok);
+  await s.consistency();
+});
+
+
+
+orchestrator.registerScenario("Scenario7: Get all contents of a module", async (s, t) => {
+  const { alice, bob } = await s.players(
+    { alice: conductorConfig, bob: conductorConfig },
+    true
+  );
+  const course_addr = await alice.call(
+    "course_dna",
+    "courses",
+    "create_course",
+    {
+      title: "course for scenario 5"
+      , timestamp: 123
+    }
+  );
+  console.log(course_addr);
+  t.ok(course_addr.Ok);
+
+  await s.consistency();
+  // Alice can create a module for course because she is the owner
+  const module_addr = await alice.call("course_dna", "courses", "create_module", {
+    title: "module 1 for course 1",
+    course_address: course_addr.Ok,
+    timestamp: 456
+  });
+
+  console.log(module_addr);
+  t.ok(module_addr.Ok);
+  await s.consistency();
+
+  const content_addr_1 = await alice.call("course_dna", "courses", "create_content", {
+    name: "content 1 for module 1",
+    url: "https://youtube.com",
+    descritpion: "Holochain Intro-Video",
+    module_address: module_addr.Ok,
+    timestamp: 7891
+  });
+
+  console.log(content_addr_1);
+  t.ok(content_addr_1.Ok);
+  await s.consistency();
+
+
+  const content_addr_2 = await alice.call("course_dna", "courses", "create_content", {
+    name: "content 2 for module 1",
+    url: "https://soundclould.com",
+    descritpion: "Holochain Intro-Sound",
+    module_address: module_addr.Ok,
+    timestamp: 7892
+  });
+
+  console.log(content_addr_2);
+  t.ok(content_addr_2.Ok);
+  await s.consistency();
+
+
+  const all_contents_of_module_1 = await alice.call("course_dna", "courses", "get_contents", {
+    module_address: module_addr.Ok
+  });
+
+  t.true(all_contents_of_module_1.Ok[0] != null);
+  t.true(all_contents_of_module_1.Ok[1] != null);
+
+  await s.consistency();
+});
+*/
+
+
+orchestrator.registerScenario("Scenario8: delete content from module", async (s, t) => {
+  const { alice, bob } = await s.players(
+    { alice: conductorConfig, bob: conductorConfig },
+    true
+  );
+  const course_addr = await alice.call(
+    "course_dna",
+    "courses",
+    "create_course",
+    {
+      title: "course for scenario 5"
+      , timestamp: 123
+    }
+  );
+  console.log(course_addr);
+  t.ok(course_addr.Ok);
+
+  await s.consistency();
+  // Alice can create a module for course because she is the owner
+  const module_addr = await alice.call("course_dna", "courses", "create_module", {
+    title: "module 1 for course 1",
+    course_address: course_addr.Ok,
+    timestamp: 456
+  });
+
+  console.log(module_addr);
+  t.ok(module_addr.Ok);
+  await s.consistency();
+
+  const content_addr_1 = await alice.call("course_dna", "courses", "create_content", {
+    name: "content 1 for module 1",
+    url: "https://youtube.com",
+    descritpion: "Holochain Intro-Video",
+    module_address: module_addr.Ok,
+    timestamp: 7891
+  });
+
+  console.log(content_addr_1);
+  t.ok(content_addr_1.Ok);
+  await s.consistency();
+
+
+  const content_addr_2 = await alice.call("course_dna", "courses", "create_content", {
+    name: "content 2 for module 1",
+    url: "https://soundclould.com",
+    descritpion: "Holochain Intro-Sound",
+    module_address: module_addr.Ok,
+    timestamp: 7892
+  });
+
+  console.log(content_addr_2);
+  t.ok(content_addr_2.Ok);
+  await s.consistency();
+
+
+  const all_contents_of_module_1 = await alice.call("course_dna", "courses", "get_contents", {
+    module_address: module_addr.Ok
+  });
+
+  t.true(all_contents_of_module_1.Ok[0] != null);
+  t.true(all_contents_of_module_1.Ok[1] != null);
+  await s.consistency();
+
+  const delete_content = await alice.call("course_dna", "courses", "delete_content", {
+    content_address: content_addr_1.Ok
+  });
+  console.log("Hedayat_abedijoo_");
+  console.log(delete_content);
+  t.ok(delete_content.Ok);
+
+  await s.consistency();
+
+  // const all_contents_of_module_1_again = await alice.call("course_dna", "courses", "get_contents", {
+  //   module_address: module_addr.Ok
+  // });
+
+  // t.true(all_contents_of_module_1.Ok[0] != null);
+  // t.true(all_contents_of_module_1.Ok[1] == null);
+
+  await s.consistency();
 });
 
 orchestrator.run();

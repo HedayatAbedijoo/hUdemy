@@ -83,7 +83,7 @@ pub fn entry_def() -> ValidatingEntryType {
         links:[
             to!(
                 "content",
-                link_type: "content_list",
+                link_type: "module->contents",
                 validation_package:||{
                     hdk::ValidationPackageDefinition::Entry
                 },
@@ -116,16 +116,16 @@ pub fn update(title: String, module_address: &Address) -> ZomeApiResult<Address>
     hdk::update_entry(module.entry(), module_address)
 }
 
-pub fn delete(module_address: Address) -> ZomeApiResult<()> {
+pub fn delete(module_address: Address) -> ZomeApiResult<Address> {
     let module: Module = hdk::utils::get_as_type(module_address.clone())?;
 
     let mut course: Course = hdk::utils::get_as_type(module.course_address.clone())?;
 
-    hdk::remove_entry(&module_address)?;
+    let result = hdk::remove_entry(&module_address)?;
 
     course.modules.remove_item(&module_address);
 
     hdk::update_entry(course.entry(), &module.course_address)?;
 
-    Ok(())
+    Ok(result)
 }

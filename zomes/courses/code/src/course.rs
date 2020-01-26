@@ -93,7 +93,7 @@ pub fn course_entry_def() -> ValidatingEntryType {
             }
         },
         links: [
-          from!(
+          from!( // to query all the courses of a user(all courses that a user is the teacher or owner of)
               "%agent_id",
               link_type: "teacher->courses",
               validation_package: || {
@@ -102,13 +102,29 @@ pub fn course_entry_def() -> ValidatingEntryType {
               validation: | _validation_data: hdk::LinkValidationData | {
                  Ok(())
               }
-          )
+          ),
+          from!( // to query all courses that one user enrolled
+            "%agent_id",
+            link_type: "student->courses",
+            validation_package: || {
+                hdk::ValidationPackageDefinition::ChainFull
+            }              ,
+            validation: | _validation_data: hdk::LinkValidationData | {
+                // TODO: we need validation, use should just enrolle himself to a course, not others.
+               Ok(())
+            }
+        ),
+        to!( // to query all enrolled user for a course
+            "%agent_id",
+            link_type: "course->students",
+            validation_package: || {
+                hdk::ValidationPackageDefinition::ChainFull
+            },
+            validation: | _validation_data: hdk::LinkValidationData | {
+                Ok(())
+            }
+        )
       ]
-        /*
-         * Link from "%agent_id", with link type: "teacher->courses"
-         * Link from "%agent_id", with link type: "student->courses"
-         * Link to "%agent_id", with link type: "course->students"
-         */
     )
 }
 
@@ -152,7 +168,7 @@ fn validate_course_title(title: &str) -> Result<(), String> {
 
 pub fn create(title: String, timestamp: u64) -> ZomeApiResult<Address> {
     let new_course = Course::new(title, AGENT_ADDRESS.to_string().into(), timestamp);
-    let new_course_entry = Entry::App("course".into(), new_course.into());
+    let new_course_entry = new_course.entry();
     let new_course_address = hdk::commit_entry(&new_course_entry)?;
     hdk::link_entries(&AGENT_ADDRESS, &new_course_address, "teacher->courses", "")?;
 
@@ -172,7 +188,7 @@ pub fn update(
         course.timestamp,
         modules_addresses,
     );
-    let new_version_course_entry = Entry::App("course".into(), new_version_course.into());
+    let new_version_course_entry = new_version_course.entry(); //Entry::App("course".into(), new_version_course.into());
 
     hdk::update_entry(new_version_course_entry, course_address)
 }
@@ -222,28 +238,17 @@ pub fn add_module_to_course(
     }
 }
 
-pub fn remove_module_from_course(
-    course_address: &Address,
-    module_address: &Address,
-) -> ZomeApiResult<Address> {
-    let current_course = hdk::get_entry(course_address).unwrap().unwrap();
-    if let Entry::App(_, current_course) = current_course {
-        let mut course_entry = Course::try_from(current_course.clone())
-            .expect("Entry at this address is not Course. You sent a wrong address");
+pub fn enrolle(course_address: Address) -> ZomeApiResult<Address> {
+    hdk::link_entries(&AGENT_ADDRESS, &course_address, "student->courses", "")?;
+    hdk::link_entries(&course_address, &AGENT_ADDRESS, "course->students", "")
+}
 
-        // remove the old address from Modules,
-        let index = course_entry
-            .modules
-            .iter()
-            .position(|x| x == module_address)
-            .unwrap();
-        course_entry.modules.remove(index);
-
-        hdk::api::update_entry(
-            Entry::App("course".into(), course_entry.into()),
-            course_address,
-        )
-    } else {
-        panic!("This address is not a valid address")
-    }
+pub fn get_students(course_address: Address) -> ZomeApiResult<Vec<ZomeApiResult<GetEntryResult>>> {
+    hdk::get_links_result(
+        &course_address,
+        LinkMatch::Exactly("course->students"),
+        LinkMatch::Any,
+        GetLinksOptions::default(),
+        GetEntryOptions::default(),
+    )
 }
