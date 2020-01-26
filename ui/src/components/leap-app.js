@@ -13,21 +13,21 @@ export class LeapApp extends LitElement {
   constructor() {
     super();
     router
+      .on(() => router.navigate('/home'))
       .on(
-        'home',
+        '/home',
         () =>
           (this.appContent = html`
             <leap-dashboard></leap-dashboard>
           `)
       )
       .on(
-        'course/:id',
+        '/course/:id',
         params =>
           (this.appContent = html`
             <leap-course-detail .courseId=${params.id}></leap-course-detail>
           `)
       )
-      .on('/', () => router.navigate('/home'))
       .resolve();
   }
 
