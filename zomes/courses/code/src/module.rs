@@ -2,7 +2,6 @@
 use hdk::prelude::*;
 
 use crate::course::Course;
-use crate::helper;
 use std::convert::TryFrom;
 /******************************************* */
 
@@ -14,11 +13,11 @@ pub struct Module {
 }
 
 impl Module {
-    pub fn new(title: String, course_address: Address) -> Self {
+    pub fn new(title: String, course_address: Address, timestamp: u64) -> Self {
         Module {
             title: title,
             course_address: course_address,
-            timestamp: helper::current_timestamp(),
+            timestamp: timestamp,
         }
     }
 
@@ -96,10 +95,10 @@ pub fn entry_def() -> ValidatingEntryType {
     )
 }
 
-pub fn create(title: String, course_address: &Address) -> ZomeApiResult<Address> {
+pub fn create(title: String, course_address: &Address, timestamp: u64) -> ZomeApiResult<Address> {
     let mut course: Course = hdk::utils::get_as_type(course_address.clone())?;
 
-    let new_module = Module::new(title, course_address.clone());
+    let new_module = Module::new(title, course_address.clone(), timestamp);
     let new_module_address = hdk::commit_entry(&new_module.entry())?;
 
     course.modules.push(new_module_address.clone());

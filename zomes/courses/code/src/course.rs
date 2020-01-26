@@ -5,7 +5,6 @@ use hdk::{
     AGENT_ADDRESS,
 };
 
-use crate::helper;
 use hdk::holochain_core_types::dna::entry_types::Sharing;
 use hdk::holochain_core_types::{entry::Entry, validation::EntryValidationData};
 use holochain_wasm_utils::api_serialization::{
@@ -31,12 +30,12 @@ pub struct Course {
 
 impl Course {
     // Constrcuctor
-    pub fn new(title: String, owner: Address) -> Self {
+    pub fn new(title: String, owner: Address, timestamp: u64) -> Self {
         Course {
             title: title,
             teacher_address: owner,
             modules: Vec::default(),
-            timestamp: helper::current_timestamp(),
+            timestamp: timestamp,
         }
     }
     pub fn from(title: String, owner: Address, timestamp: u64, modules: Vec<Address>) -> Self {
@@ -151,8 +150,8 @@ fn validate_course_title(title: &str) -> Result<(), String> {
 /********************************************** */
 /// Course Helper Functions: CRUD
 
-pub fn create(title: String) -> ZomeApiResult<Address> {
-    let new_course = Course::new(title, AGENT_ADDRESS.to_string().into());
+pub fn create(title: String, timestamp: u64) -> ZomeApiResult<Address> {
+    let new_course = Course::new(title, AGENT_ADDRESS.to_string().into(), timestamp);
     let new_course_entry = Entry::App("course".into(), new_course.into());
     let new_course_address = hdk::commit_entry(&new_course_entry)?;
     hdk::link_entries(&AGENT_ADDRESS, &new_course_address, "teacher->courses", "")?;

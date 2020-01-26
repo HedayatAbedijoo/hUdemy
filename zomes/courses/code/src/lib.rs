@@ -29,7 +29,6 @@ mod content;
 mod course;
 mod module;
 use course::Course;
-mod helper;
 #[zome]
 mod course_zome {
 
@@ -55,8 +54,8 @@ mod course_zome {
   }
 
   #[zome_fn("hc_public")]
-  fn create_course(title: String) -> ZomeApiResult<Address> {
-    course::create(title)
+  fn create_course(title: String, timestamp: u64) -> ZomeApiResult<Address> {
+    course::create(title, timestamp)
   }
 
   #[zome_fn("hc_public")]
@@ -93,8 +92,12 @@ mod course_zome {
   }
 
   #[zome_fn("hc_public")]
-  fn create_module(title: String, course_address: Address) -> ZomeApiResult<Address> {
-    module::create(title, &course_address)
+  fn create_module(
+    title: String,
+    course_address: Address,
+    timestamp: u64,
+  ) -> ZomeApiResult<Address> {
+    module::create(title, &course_address, timestamp)
   }
 
   #[zome_fn("hc_public")]
