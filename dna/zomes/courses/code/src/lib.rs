@@ -19,7 +19,7 @@ use hdk::prelude::*;
 
 use hdk::holochain_json_api::{error::JsonError, json::JsonString};
 use hdk::holochain_persistence_api::cas::content::Address;
-
+use hdk::AGENT_ADDRESS;
 use hdk_proc_macros::zome;
 
 //use std::convert::TryInto;
@@ -40,6 +40,11 @@ mod course_zome {
   #[validate_agent]
   pub fn validate_agent(validation_data: EntryValidationData<AgentId>) {
     Ok(())
+  }
+
+  #[zome_fn("hc_public")]
+  fn get_my_address() -> ZomeApiResult<Address> {
+    Ok(AGENT_ADDRESS.clone())
   }
 
   /**************************** Course Entry Definition and Functions */
@@ -78,23 +83,26 @@ mod course_zome {
   }
 
   #[zome_fn("hc_public")]
-  fn get_courses() -> ZomeApiResult<Vec<Address>> {
+  fn get_all_courses() -> ZomeApiResult<Vec<Address>> {
     course::list()
   }
   #[zome_fn("hc_public")]
-  fn get_my_courses() -> ZomeApiResult<Vec<ZomeApiResult<GetEntryResult>>> {
+  fn get_my_courses() -> ZomeApiResult<Vec<Address>> {
     course::get_my_courses()
   }
 
   #[zome_fn("hc_public")]
-  fn enrolle_me(course_address: Address) -> ZomeApiResult<Address> {
-    course::enrolle(course_address)
+  fn get_my_enrolled_courses() -> ZomeApiResult<Vec<Address>> {
+    course::get_my_enrolled_courses()
   }
 
   #[zome_fn("hc_public")]
-  fn get_all_students(
-    course_address: Address,
-  ) -> ZomeApiResult<Vec<ZomeApiResult<GetEntryResult>>> {
+  fn enrol_in_course(course_address: Address) -> ZomeApiResult<Address> {
+    course::enrol_in_course(course_address)
+  }
+
+  #[zome_fn("hc_public")]
+  fn get_all_students(course_address: Address) -> ZomeApiResult<Vec<Address>> {
     course::get_students(course_address)
   }
 

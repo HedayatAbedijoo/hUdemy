@@ -176,12 +176,16 @@ fn validate_course_title(title: &str) -> Result<(), String> {
 /// Course Helper Functions: CRUD
 
 pub fn create(title: String, timestamp: u64) -> ZomeApiResult<Address> {
+    let anchor_entry = anchor_entry();
+    let anchor_address = hdk::commit_entry(&anchor_entry)?; // if Anchor exist, it returns the commited one.
+
     let new_course = Course::new(title, AGENT_ADDRESS.to_string().into(), timestamp);
     let new_course_entry = new_course.entry();
     let new_course_address = hdk::commit_entry(&new_course_entry)?;
+
     hdk::link_entries(&AGENT_ADDRESS, &new_course_address, "teacher->courses", "")?;
 
-    hdk::link_entries(&anchor_address()?, &new_course_address, "course_list", "")?;
+    hdk::link_entries(&anchor_address, &new_course_address, "course_list", "")?;
 
     Ok(new_course_address)
 }
@@ -205,14 +209,20 @@ pub fn update(
 }
 
 pub fn delete(address: Address) -> ZomeApiResult<Address> {
+    hdk::remove_link(&anchor_address()?, &address, "course_list", "")?;
+
+    let students = get_students(address.clone())?;
+
+    for student in students {
+        hdk::remove_link(&student, &address, "student->course", "")?;
+    }
+
     hdk::remove_entry(&address)
 }
 
 pub fn list() -> ZomeApiResult<Vec<Address>> {
-    let anchor_entry = anchor_entry();
-    let anchor_address = hdk::commit_entry(&anchor_entry)?; // if Anchor exist, it returns the commited one.
     let addresses = hdk::get_links(
-        &anchor_address,
+        &anchor_address()?,
         LinkMatch::Exactly("course_list"),
         LinkMatch::Any,
     )?
@@ -221,14 +231,24 @@ pub fn list() -> ZomeApiResult<Vec<Address>> {
     Ok(addresses)
 }
 
-pub fn get_my_courses() -> ZomeApiResult<Vec<ZomeApiResult<GetEntryResult>>> {
-    hdk::get_links_result(
+pub fn get_my_courses() -> ZomeApiResult<Vec<Address>> {
+    let links = hdk::get_links(
         &AGENT_ADDRESS,
         LinkMatch::Exactly("teacher->courses"),
         LinkMatch::Any,
-        GetLinksOptions::default(),
-        GetEntryOptions::default(),
-    )
+    )?;
+
+    Ok(links.addresses())
+}
+
+pub fn get_my_enrolled_courses() -> ZomeApiResult<Vec<Address>> {
+    let links = hdk::get_links(
+        &AGENT_ADDRESS,
+        LinkMatch::Exactly("student->courses"),
+        LinkMatch::Any,
+    )?;
+
+    Ok(links.addresses())
 }
 
 pub fn add_module_to_course(
@@ -249,17 +269,17 @@ pub fn add_module_to_course(
     }
 }
 
-pub fn enrolle(course_address: Address) -> ZomeApiResult<Address> {
+pub fn enrol_in_course(course_address: Address) -> ZomeApiResult<Address> {
     hdk::link_entries(&AGENT_ADDRESS, &course_address, "student->courses", "")?;
     hdk::link_entries(&course_address, &AGENT_ADDRESS, "course->students", "")
 }
 
-pub fn get_students(course_address: Address) -> ZomeApiResult<Vec<ZomeApiResult<GetEntryResult>>> {
-    hdk::get_links_result(
+pub fn get_students(course_address: Address) -> ZomeApiResult<Vec<Address>> {
+    let links = hdk::get_links(
         &course_address,
         LinkMatch::Exactly("course->students"),
         LinkMatch::Any,
-        GetLinksOptions::default(),
-        GetEntryOptions::default(),
-    )
+    )?;
+
+    Ok(links.addresses())
 }

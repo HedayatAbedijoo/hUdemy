@@ -13,6 +13,7 @@ export const typeDefs = gql`
 
   type Module {
     id: ID!
+    course_address: Course! @loadEntry
     title: String!
     contents: [Content!]! @loadEntry
   }
@@ -25,8 +26,9 @@ export const typeDefs = gql`
   }
 
   type Query {
-    allCourses: [Course!]! @loadEntry
+    courses(filter: String!): [Course!]! @loadEntry
     course(courseId: ID!): Course! @loadEntry
+    myAddress: ID!
   }
 
   input ContentInput {
@@ -42,14 +44,14 @@ export const typeDefs = gql`
       title: String!
       modulesIds: [ID!]!
     ): Course! @loadEntry
-    deleteCourse(courseId: ID!): ID!
+    deleteCourse(courseId: ID!): ID
     createModule(courseId: ID!, title: String!): Module! @loadEntry
     updateModule(moduleId: ID!, title: String!): Module! @loadEntry
-    deleteModule(moduleId: ID!): Module! @loadEntry
+    deleteModule(moduleId: ID!): ID
     createContent(moduleId: ID!, content: ContentInput!): Content! @loadEntry
+    enrolInCourse(courseId: ID!): Course! @loadEntry
   }
 `;
 
-/*     myCourses: [Course!]!
-    myAddress: ID!
+/*     
  */

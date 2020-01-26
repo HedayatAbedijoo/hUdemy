@@ -9,13 +9,20 @@ import '@material/mwc-icon-button';
 
 import { sharedStyles } from '../shared-styles';
 import { getClient } from '../graphql';
-import { UPDATE_MODULE, CREATE_CONTENT } from '../graphql/queries';
+import {
+  UPDATE_MODULE,
+  CREATE_CONTENT,
+  DELETE_MODULE
+} from '../graphql/queries';
 
 export class hUdemyModule extends LitElement {
   static get properties() {
     return {
       module: {
         type: Object
+      },
+      editable: {
+        type: Boolean
       },
       editingTitle: {
         type: Boolean
@@ -80,11 +87,22 @@ export class hUdemyModule extends LitElement {
     });
   }
 
+  async deleteModule() {
+    const client = await getClient();
+    client.mutate({
+      mutation: DELETE_MODULE,
+      variables: {
+        moduleId: this.module.id
+      }
+    });
+  }
+
   renderCreateContentDialog() {
     return html`
-      <mwc-dialog id="create-content-dialog" heading="Create content">
-        <div class="column" style="width: 500px;">
+      <mwc-dialog id="create-content-dialog" heading="Add content">
+        <div class="column" style="width: 500px; margin-top: 16px;">
           <mwc-textfield
+            outlined
             class="dialog-field"
             label="Name"
             dialogInitialFocus
@@ -98,6 +116,7 @@ export class hUdemyModule extends LitElement {
           >
           </mwc-textarea>
           <mwc-textfield
+            outlined
             class="dialog-field"
             label="URL"
             @input=${e => (this.contentUrl = e.target.value)}
@@ -119,34 +138,74 @@ export class hUdemyModule extends LitElement {
     `;
   }
 
+  renderHeader() {
+    return html`
+      <div class="row">
+        <div style="flex: 1;">${this.renderTitle()}</div>
+        ${this.renderToolbar()}
+      </div>
+    `;
+  }
+
   renderTitle() {
     return html`
       <div class="row" style="align-items: center; padding-bottom: 24px;">
-        ${this.editingTitle
+        ${this.editable && this.editingTitle
           ? html`
               <mwc-textfield
+                outlined
                 @input=${e => (this.renameModule = e.target.value)}
                 .value=${this.module.title}
               ></mwc-textfield>
-              <mwc-icon-button
-                label="Save"
-                icon="done"
-                @click=${() => this.updateModule()}
-              ></mwc-icon-button>
-              <mwc-icon-button
-                label="Cancel"
-                icon="clear"
-                @click=${() => (this.editingTitle = false)}
-              ></mwc-icon-button>
             `
           : html`
               <span class="title"> ${this.module.title}</span>
-              <mwc-icon-button
-                label="Edit"
-                icon="edit"
-                @click=${() => (this.editingTitle = true)}
-              ></mwc-icon-button>
             `}
+      </div>
+    `;
+  }
+
+  renderToolbar() {
+    if (!this.editable) return html``;
+
+    if (this.editingTitle)
+      return html`
+        <div class="row">
+          <mwc-icon-button
+            label="Save"
+            icon="done"
+            @click=${() => this.updateModule()}
+          ></mwc-icon-button>
+          <mwc-icon-button
+            label="Cancel"
+            icon="clear"
+            @click=${() => (this.editingTitle = false)}
+          ></mwc-icon-button>
+        </div>
+      `;
+
+    return html`
+      <div class="row">
+        <mwc-icon-button
+          label="Edit"
+          icon="edit"
+          @click=${() => (this.editingTitle = true)}
+        ></mwc-icon-button>
+        <mwc-icon-button
+          slot="action-buttons"
+          icon="add"
+          label="Add content"
+          @click=${() =>
+            (this.shadowRoot.getElementById(
+              'create-content-dialog'
+            ).open = true)}
+        ></mwc-icon-button>
+        <mwc-icon-button
+          slot="action-buttons"
+          icon="delete"
+          label="Delete module"
+          @click=${() => this.deleteModule()}
+        ></mwc-icon-button>
       </div>
     `;
   }
@@ -157,7 +216,7 @@ export class hUdemyModule extends LitElement {
 
       <mwc-card class="fill">
         <div style="padding: 16px;" class="column">
-          ${this.renderTitle()}
+          ${this.renderHeader()}
           ${this.module.contents.length === 0
             ? html`
                 <span class="placeholder-message">
@@ -190,15 +249,6 @@ export class hUdemyModule extends LitElement {
                 </mwc-list>
               `}
         </div>
-        <mwc-button
-          slot="action-buttons"
-          icon="add"
-          label="Add content"
-          @click=${() =>
-            (this.shadowRoot.getElementById(
-              'create-content-dialog'
-            ).open = true)}
-        ></mwc-button>
       </mwc-card>
     `;
   }

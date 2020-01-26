@@ -34,6 +34,8 @@ export class hUdemyApp extends LitElement {
     return html`
       <mwc-dialog id="create-course-dialog" heading="Create course">
         <mwc-textfield
+          style="margin-top: 16px;"
+          outlined
           label="Title"
           dialogInitialFocus
           @input=${e => (this.courseTitle = e.target.value)}
@@ -83,7 +85,9 @@ export class hUdemyApp extends LitElement {
           ></mwc-button>
         </mwc-top-app-bar>
 
-        <mwc-tab-bar @activated=${e => (this.activeTab = e.detail.index)}>
+        <mwc-tab-bar
+          @MDCTabBar:activated=${e => (this.activeTab = e.detail.index)}
+        >
           <mwc-tab label="Enrolled Courses"> </mwc-tab>
           <mwc-tab label="My Courses"> </mwc-tab>
           <mwc-tab label="All courses"> </mwc-tab>

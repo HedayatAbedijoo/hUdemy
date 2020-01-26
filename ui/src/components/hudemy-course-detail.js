@@ -1,11 +1,16 @@
 import { LitElement, html, css } from 'lit-element';
 
 import '@authentic/mwc-circular-progress';
-import '@material/mwc-fab';
+import '@material/mwc-button';
 
 import { sharedStyles } from '../shared-styles';
 import { getClient } from '../graphql';
-import { GET_COURSE_INFO, CREATE_MODULE } from '../graphql/queries';
+import {
+  GET_COURSE_INFO,
+  CREATE_MODULE,
+  ENROL_IN_COURSE,
+  DELETE_COURSE
+} from '../graphql/queries';
 
 export class hUdemyCourseDetail extends LitElement {
   static get properties() {
@@ -45,6 +50,7 @@ export class hUdemyCourseDetail extends LitElement {
     });
 
     this.course = result.data.course;
+    this.myAddress = result.data.myAddress;
   }
 
   firstUpdated() {
@@ -85,6 +91,8 @@ export class hUdemyCourseDetail extends LitElement {
     return html`
       <mwc-dialog id="create-module-dialog" heading="Create module">
         <mwc-textfield
+          style="margin-top: 16px;"
+          outlined
           label="Title"
           dialogInitialFocus
           @input=${e => (this.moduleTitle = e.target.value)}
@@ -105,19 +113,120 @@ export class hUdemyCourseDetail extends LitElement {
     `;
   }
 
+  renderPlacholder(message) {
+    return html`
+      <div class="fill center-content">
+        <span class="placeholder-message">
+          ${message}
+        </span>
+      </div>
+    `;
+  }
+
   renderModules() {
+    if (this.course.modules.length === 0)
+      return this.renderPlacholder('There are no modules in this course');
+
     return html`
       <div class="column">
         ${this.course.modules.map(
           module =>
             html`
               <hudemy-module
-                class="medium-padding"
                 .module=${module}
+                .editable=${this.userIsTeacher()}
               ></hudemy-module>
             `
         )}
       </div>
+    `;
+  }
+
+  userIsTeacher() {
+    return this.myAddress === this.course.teacher_address;
+  }
+
+  async enrolInCourse() {
+    const client = await getClient();
+
+    client.mutate({
+      mutation: ENROL_IN_COURSE,
+      variables: {
+        courseId: this.courseId
+      }
+    });
+  }
+
+  async deleteCourse() {
+    const client = await getClient();
+
+    client.mutate({
+      mutation: DELETE_COURSE,
+      variables: {
+        courseId: this.courseId
+      }
+    });
+  }
+
+  renderCourseInfo() {
+    return html`
+      <div class="row center-content" style="padding-bottom: 24px;">
+        <div class="column fill">
+          <h2>${this.course.title}</h2>
+          <span>Taught by ${this.course.teacher_address}</span>
+        </div>
+
+        ${this.userIsTeacher()
+          ? html`
+              <div class="column">
+                <mwc-button
+                  icon="add"
+                  label="Add module"
+                  raised
+                  style="padding-bottom: 8px;"
+                  @click=${() =>
+                    (this.shadowRoot.getElementById(
+                      'create-module-dialog'
+                    ).open = true)}
+                ></mwc-button>
+
+                <mwc-button
+                  icon="delete"
+                  label="Delete course"
+                  outlined
+                  class="danger"
+                  @click=${() => this.deleteCourse()}
+                ></mwc-button>
+              </div>
+            `
+          : html`
+              <mwc-button
+                icon="school"
+                label="Enrol in this course"
+                outlined
+                @click=${() => this.enrolInCourse()}
+              ></mwc-button>
+            `}
+      </div>
+    `;
+  }
+
+  renderStudentsList() {
+    if (this.course.students.length === 0)
+      return this.renderPlacholder(
+        'There are no students enrolled in this course'
+      );
+
+    return html`
+      <mwc-list>
+        ${this.course.students.map(
+          student => html`
+            <span>
+              ${student}
+            </span>
+          `
+        )}
+      </mwc-list>
     `;
   }
 
@@ -131,27 +240,21 @@ export class hUdemyCourseDetail extends LitElement {
 
     return html`
       ${this.renderCreateModuleDialog()}
-      <div class="fill" style="position: relative;">
-        ${this.course.modules.length === 0
-          ? html`
-              <div class="fill center-content">
-                <span class="placeholder-message">
-                  There are no modules in this course
-                </span>
-              </div>
-            `
-          : this.renderModules()}
 
-        <mwc-fab
-          class="fab"
-          extended
-          icon="add"
-          label="Add module"
-          @click=${() =>
-            (this.shadowRoot.getElementById(
-              'create-module-dialog'
-            ).open = true)}
-        ></mwc-fab>
+      <div class="column" style="position: relative; padding: 16px;">
+        ${this.renderCourseInfo()}
+
+        <div class="row">
+          <div class="column" style="flex: 1; padding-right: 24px;">
+            <h3>Modules</h3>
+            ${this.renderModules()}
+          </div>
+
+          <div class="column">
+            <h3>Students</h3>
+            ${this.renderStudentsList()}
+          </div>
+        </div>
       </div>
     `;
   }

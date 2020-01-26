@@ -20,7 +20,6 @@ export class LoadEntityDirective extends SchemaDirectiveVisitor {
 
       if (!entityId) return null;
 
-      console.log('hi2', entityId);
       if (typeof entityId === 'string')
         return this.loadEntry(entityId, context.callZome);
       else return entityId.map(id => this.loadEntry(id, context.callZome));
@@ -28,7 +27,6 @@ export class LoadEntityDirective extends SchemaDirectiveVisitor {
   }
 
   async loadEntry(entityId, callZome) {
-    console.log('hi3', entityId);
 
     const entryResult = await callZome(
       INSTANCE_NAME,
@@ -37,10 +35,8 @@ export class LoadEntityDirective extends SchemaDirectiveVisitor {
     )({
       address: entityId
     });
-    console.log('hi4', entryResult);
 
     const entry = parseEntry(entryResult);
-    console.log('hi5', entry);
 
     return { id: entityId, ...entry };
   }

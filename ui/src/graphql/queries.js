@@ -1,8 +1,8 @@
 import gql from 'graphql-tag';
 
-export const GET_ALL_COURSES = gql`
-  query GetAllCourses {
-    allCourses {
+export const GET_COURSES = gql`
+  query GetCourses($filter: String!) {
+    courses(filter: $filter) {
       id
       title
       teacher_address
@@ -13,6 +13,7 @@ export const GET_ALL_COURSES = gql`
 
 export const GET_COURSE_INFO = gql`
   query GetCourseInfo($courseId: String) {
+    myAddress
     course(courseId: $courseId) {
       id
       title
@@ -42,6 +43,18 @@ export const CREATE_COURSE = gql`
   }
 `;
 
+export const DELETE_COURSE = gql`
+  mutation DeleteCourse($courseId: ID) {
+    deleteCourse(courseId: $courseId)
+  }
+`;
+
+export const DELETE_MODULE = gql`
+  mutation DeleteModule($moduleId: ID) {
+    deleteModule(moduleId: $moduleId)
+  }
+`;
+
 export const CREATE_MODULE = gql`
   mutation CreateModule($courseId: ID!, $title: String!) {
     createModule(courseId: $courseId, title: $title) {
@@ -67,6 +80,16 @@ export const CREATE_CONTENT = gql`
       name
       description
       url
+    }
+  }
+`;
+
+export const ENROL_IN_COURSE = gql`
+  mutation EnrolInCourse($courseId: ID!) {
+    enrolInCourse(courseId: $courseId) {
+      id
+      title
+      students
     }
   }
 `;

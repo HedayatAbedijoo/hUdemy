@@ -3,19 +3,39 @@ import { parseResponse } from '../utils';
 
 export const resolvers = {
   Query: {
-    async allCourses(_, __, { callZome }) {
+    async courses(_, { filter }, { callZome }) {
+      const fnName =
+        filter === 'enrolled-courses'
+          ? 'get_my_enrolled_courses'
+          : filter === 'my-courses'
+          ? 'get_my_courses'
+          : 'get_all_courses';
+
+      const result = await callZome(INSTANCE_NAME, ZOME_NAME, fnName)({});
+
+      return parseResponse(result);
+    },
+    async myAddress(_, __, { callZome }) {
       const result = await callZome(
         INSTANCE_NAME,
         ZOME_NAME,
-        'get_courses'
+        'get_my_address'
       )({});
 
       return parseResponse(result);
     }
   },
   Course: {
-    async students(parent) {
-      return [];
+    async students(parent, _, { callZome }) {
+      const result = await callZome(
+        INSTANCE_NAME,
+        ZOME_NAME,
+        'get_all_students'
+      )({
+        course_address: parent.id
+      });
+
+      return parseResponse(result);
     }
   },
   Module: {
@@ -118,6 +138,18 @@ export const resolvers = {
       });
 
       return parseResponse(result);
+    },
+    async enrolInCourse(_, { courseId }, { callZome }) {
+      const result = await callZome(
+        INSTANCE_NAME,
+        ZOME_NAME,
+        'enrol_in_course'
+      )({
+        course_address: courseId
+      });
+
+      parseResponse(result);
+      return courseId;
     }
   }
 };
