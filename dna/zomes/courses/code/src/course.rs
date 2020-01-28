@@ -97,7 +97,7 @@ pub fn course_entry_def() -> ValidatingEntryType {
               "%agent_id",
               link_type: "teacher->courses",
               validation_package: || {
-                  hdk::ValidationPackageDefinition::ChainFull
+                  hdk::ValidationPackageDefinition::Entry
               }              ,
               validation: | _validation_data: hdk::LinkValidationData | {
                  Ok(())
@@ -107,10 +107,21 @@ pub fn course_entry_def() -> ValidatingEntryType {
             "%agent_id",
             link_type: "student->courses",
             validation_package: || {
-                hdk::ValidationPackageDefinition::ChainFull
+                hdk::ValidationPackageDefinition::Entry
             }              ,
             validation: | _validation_data: hdk::LinkValidationData | {
                 // TODO: we need validation, use should just enrolle himself to a course, not others.
+
+               // if let hdk::LinkValidationData::LinkAdd{link, ..} = validation_data {
+                //      link.link.base().Address== _validation_data.sources().con
+                //     if link.link.tag() == "muffins" {
+                //         Err("This is the one tag that is not allowed!".into())
+                //     } else {
+                //         Ok(())
+                //     }
+                // } else {
+                //     Ok(())
+                // }
                Ok(())
             }
         ),
@@ -118,7 +129,7 @@ pub fn course_entry_def() -> ValidatingEntryType {
             "%agent_id",
             link_type: "course->students",
             validation_package: || {
-                hdk::ValidationPackageDefinition::ChainFull
+                hdk::ValidationPackageDefinition::Entry
             },
             validation: | _validation_data: hdk::LinkValidationData | {
                 Ok(())

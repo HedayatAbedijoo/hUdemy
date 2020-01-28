@@ -11,8 +11,8 @@ public_address = 'HcScjN8wBwrn3tuyg89aab3a69xsIgdzmX5P9537BqQZ5A7TEZu7qCY4Xzzjhm
 test_agent = true
 
 [[dnas]]
-file = '/home/guillem/projects/holochain/hUdemy/dna/dist/dna.dna.json'
-hash = 'QmVgFwquQ2BR3BqtB8icxbCwYFEK8HxQ7caXeL5dihs3bx'
+file = '/home/hedayat/holo/hUdemy/dna/dist/dna.dna.json'
+hash = 'Qme4V66koPLCEKA9odqJ9mFL7CaH8dCG93eccjZLQgtqU9'
 id = 'hc-run-dna'
 
 [[instances]]
@@ -21,7 +21,8 @@ dna = 'hc-run-dna'
 id = 'test-instance'
 
 [instances.storage]
-type = 'memory'
+path = '.hc'
+type = 'pickle'
 
 [[interfaces]]
 admin = true

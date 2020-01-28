@@ -18,7 +18,7 @@ process.on("unhandledRejection", error => {
   console.error("got unhandledRejection:", error);
 });
 
-const dnaPath = path.join(__dirname, "../dist/hUdemy.dna.json");
+const dnaPath = path.join(__dirname, "../dist/dna.dna.json");
 
 const orchestrator = new Orchestrator({
   middleware: combine(

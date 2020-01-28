@@ -92,7 +92,7 @@ pub fn validate_author(
     let course: Course = hdk::utils::get_as_type(module.course_address.clone())?;
     if !signing_addresses.contains(&course.teacher_address) {
         return Err(ZomeApiError::from(String::from(
-            "HOHOHO Only the teacher can create or modify a content for module",
+            "Error: Only the teacher can create or modify a content for module",
         )));
     }
     Ok(())
