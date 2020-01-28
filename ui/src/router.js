@@ -1,3 +1,3 @@
 import Navigo from 'navigo';
 
-export const router = new Navigo('http://localhost:8080');
+export const router = new Navigo(`http://localhost:${window.location.port}`);

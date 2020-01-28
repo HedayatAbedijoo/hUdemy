@@ -97,6 +97,8 @@ export class LeapModule extends LitElement {
         }
       });
     }
+
+    window.location.reload();
   }
 
   async updateModule() {
@@ -110,6 +112,8 @@ export class LeapModule extends LitElement {
         title: this.renameModule
       }
     });
+
+    window.location.reload();
   }
 
   async deleteModule() {
@@ -120,6 +124,8 @@ export class LeapModule extends LitElement {
         moduleId: this.module.id
       }
     });
+
+    window.location.reload();
   }
 
   async deleteContent(contentId) {
@@ -130,6 +136,8 @@ export class LeapModule extends LitElement {
         contentId: contentId
       }
     });
+
+    window.location.reload();
   }
 
   showContentDialog(existingContent) {

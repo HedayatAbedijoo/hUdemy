@@ -86,7 +86,7 @@ export class LeapCourseDetail extends LitElement {
       ]
     });
 
-    this.loadCourse();
+    window.location.reload();
   }
 
   renderCreateModuleDialog() {
@@ -131,6 +131,7 @@ export class LeapCourseDetail extends LitElement {
               <leap-module
                 .module=${module}
                 .editable=${this.userIsTeacher()}
+                style="padding-bottom: 24px;"
               ></leap-module>
             `
         )}
