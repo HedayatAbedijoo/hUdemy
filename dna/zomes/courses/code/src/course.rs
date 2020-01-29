@@ -214,7 +214,7 @@ pub fn update(
         course.timestamp,
         modules_addresses,
     );
-    let new_version_course_entry = new_version_course.entry(); //Entry::App("course".into(), new_version_course.into());
+    let new_version_course_entry = new_version_course.entry();
 
     hdk::update_entry(new_version_course_entry, course_address)
 }

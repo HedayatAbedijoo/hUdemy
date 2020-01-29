@@ -102,7 +102,7 @@ pub fn create(title: String, course_address: &Address, timestamp: u64) -> ZomeAp
     let new_module_address = hdk::commit_entry(&new_module.entry())?;
 
     course.modules.push(new_module_address.clone());
-
+    course.timestamp += 1;
     hdk::update_entry(course.entry(), &course_address)?;
 
     Ok(new_module_address)
@@ -124,7 +124,7 @@ pub fn delete(module_address: Address) -> ZomeApiResult<Address> {
     let result = hdk::remove_entry(&module_address)?;
 
     course.modules.remove_item(&module_address);
-
+    course.timestamp += 1; // we need to prevent duplication by changing the array.
     hdk::update_entry(course.entry(), &module.course_address)?;
 
     Ok(result)
