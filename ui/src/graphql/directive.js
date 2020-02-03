@@ -1,6 +1,6 @@
 import { SchemaDirectiveVisitor } from 'graphql-tools';
 
-import { INSTANCE_NAME, ZOME_NAME } from '../config';
+import { INSTANCE_NAME, COURSES_ZOME } from '../config';
 import { parseEntry } from '../utils';
 
 export class LoadEntityDirective extends SchemaDirectiveVisitor {
@@ -30,7 +30,7 @@ export class LoadEntityDirective extends SchemaDirectiveVisitor {
 
     const entryResult = await callZome(
       INSTANCE_NAME,
-      ZOME_NAME,
+      COURSES_ZOME,
       'get_entry'
     )({
       address: entityId

@@ -10,5 +10,7 @@
   ],
   "version": "0.1.0",
   "dht": {},
-  "properties": null
+  "properties": {
+    "valid_members": ["HcScjwa89epCAea9r8tUIRrj35ixri378CehkGxW98Nu5c3xvn87NvUbovxpxei","HcScIWQx7b9vA6qcmeGt6cUu3gSnfiph4gvgSGDDwotfnpmom9ordxV9HX8rfoa"]
+  }
 }

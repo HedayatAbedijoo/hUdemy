@@ -2,11 +2,10 @@
   "scripts": {
     "build": "webpack --mode=production",
     "start": "webpack-dev-server --watch",
-    "hc:alice": "cd ../dna && hc run --agent-name alice --networked sim2h",
-    "hc:bob": "cd ../dna && hc run --agent-name bob -p 8889 --networked sim2h",
-    "ui:alice": "HC_PORT=8888 webpack-dev-server --port 8080",
-    "ui:bob": "HC_PORT=8889 webpack-dev-server --port 8081",
-    "demo": "concurrently \"sim2h_server\" \"npm run hc:alice\" \"npm run hc:bob\" \"npm run ui:alice\" \"npm run ui:bob\" "
+    "hc": "cd ../dna && holochain -c conductor-config.toml",
+    "ui:alice": "INSTANCE_ID=alice-instance HC_PORT=8888 webpack-dev-server --port 8080",
+    "ui:bob": "INSTANCE_ID=bob-instance HC_PORT=8889 webpack-dev-server --port 8081",
+    "demo": "concurrently \"sim2h_server\" \"npm run hc\" \"npm run ui:alice\" \"npm run ui:bob\" "
   },
   "devDependencies": {
     "@open-wc/building-webpack": "^2.1.0",

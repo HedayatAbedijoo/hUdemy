@@ -4,47 +4,60 @@ ui_bundles = []
 ui_interfaces = []
 
 [[agents]]
-id = 'hc-run-agent'
-keystore_file = 'testAgent'
-name = 'testAgent'
-public_address = 'HcScjN8wBwrn3tuyg89aab3a69xsIgdzmX5P9537BqQZ5A7TEZu7qCY4Xzzjhma'
-test_agent = true
+id = 'hc-alice'
+keystore_file = './alice.keystore'
+name = 'alice'
+public_address = 'HcScjwa89epCAea9r8tUIRrj35ixri378CehkGxW98Nu5c3xvn87NvUbovxpxei'
+
+[[agents]]
+id = 'hc-bob'
+keystore_file = './bob.keystore'
+name = 'bob'
+public_address = 'HcScIWQx7b9vA6qcmeGt6cUu3gSnfiph4gvgSGDDwotfnpmom9ordxV9HX8rfoa'
 
 [[dnas]]
-file = '/home/hedayat/holo/hUdemy/dna/dist/dna.dna.json'
-hash = 'Qme4V66koPLCEKA9odqJ9mFL7CaH8dCG93eccjZLQgtqU9'
-id = 'hc-run-dna'
+file = '/home/guillem/projects/holochain/hUdemy/dna/dist/dna.dna.json'
+hash = 'QmWHaVDFYrrdG4VRwhy7uYjXNDDRuy8R3f2Rf1HqzbWkvM'
+id = 'hc-courses'
 
 [[instances]]
-agent = 'hc-run-agent'
-dna = 'hc-run-dna'
-id = 'test-instance'
+agent = 'hc-alice'
+dna = 'hc-courses'
+id = 'alice-instance'
 
 [instances.storage]
-path = '.hc'
-type = 'pickle'
+type = 'memory'
 
 [[interfaces]]
 admin = true
-id = 'websocket-interface'
+id = 'alice-interface'
 
 [[interfaces.instances]]
-id = 'test-instance'
+id = 'alice-instance'
 
 [interfaces.driver]
 port = 8888
 type = 'websocket'
 
-[logger]
-state_dump = true
-type = 'debug'
+[[instances]]
+agent = 'hc-bob'
+dna = 'hc-courses'
+id = 'bob-instance'
 
-[logger.rules]
-rules = []
+[instances.storage]
+type = 'memory'
 
-[passphrase_service]
-type = 'cmd'
+[[interfaces]]
+admin = true
+id = 'bob-interface'
 
-[signals]
-consistency = false
-trace = false
+[[interfaces.instances]]
+id = 'bob-instance'
+
+[interfaces.driver]
+port = 8889
+type = 'websocket'
+
+[network]
+type = "sim2h"
+sim2h_url = 'ws://localhost:9000'
