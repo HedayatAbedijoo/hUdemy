@@ -146,23 +146,27 @@ export class LeapCourseDetail extends LitElement {
   async enrolInCourse() {
     const client = await getClient();
 
-    client.mutate({
+    await client.mutate({
       mutation: ENROL_IN_COURSE,
       variables: {
         courseId: this.courseId
       }
     });
+
+    router.navigate('/home');
   }
 
   async deleteCourse() {
     const client = await getClient();
 
-    client.mutate({
+    await client.mutate({
       mutation: DELETE_COURSE,
       variables: {
         courseId: this.courseId
       }
     });
+
+    router.navigate('/home');
   }
 
   renderCourseInfo() {

@@ -5,14 +5,14 @@ ui_interfaces = []
 
 [[agents]]
 id = 'hc-run-agent'
-keystore_file = 'testAgent'
-name = 'testAgent'
-public_address = 'HcScjN8wBwrn3tuyg89aab3a69xsIgdzmX5P9537BqQZ5A7TEZu7qCY4Xzzjhma'
+keystore_file = 'alice'
+name = 'alice'
+public_address = 'HcScjwO9ji9633ZYxa6IYubHJHW6ctfoufv5eq4F7ZOxay8wR76FP4xeG9pY3ui'
 test_agent = true
 
 [[dnas]]
-file = '/home/hedayat/holo/hUdemy/dna/dist/dna.dna.json'
-hash = 'Qme4V66koPLCEKA9odqJ9mFL7CaH8dCG93eccjZLQgtqU9'
+file = '/Users/adriaanb/Work/projects/holochain/_DevCamp/code/hUdemy/dna/dist/dna.dna.json'
+hash = 'QmNsAfYHNVi3vDPPC5V9N8XqCTRcvbgeFcbhkRK312wPHK'
 id = 'hc-run-dna'
 
 [[instances]]
@@ -21,8 +21,7 @@ dna = 'hc-run-dna'
 id = 'test-instance'
 
 [instances.storage]
-path = '.hc'
-type = 'pickle'
+type = 'memory'
 
 [[interfaces]]
 admin = true
@@ -41,6 +40,10 @@ type = 'debug'
 
 [logger.rules]
 rules = []
+
+[network]
+sim2h_url = 'ws://localhost:9000'
+type = 'sim2h'
 
 [passphrase_service]
 type = 'cmd'
