@@ -1,5 +1,7 @@
 import { LitElement, html, css } from 'lit-element';
 
+import { USERNAME } from '../config';
+
 import '@material/mwc-top-app-bar';
 import '@material/mwc-dialog';
 import '@material/mwc-textfield';
@@ -104,7 +106,7 @@ export class LeapDashboard extends LitElement {
       ${this.renderCreateCourseDialog()}
       <div class="column fill" style="position: relative;">
         <mwc-top-app-bar>
-          <div slot="title">Leap</div>
+          <div slot="title">Leap ${USERNAME ? '/ ' + USERNAME : ''}</div>
         </mwc-top-app-bar>
 
         <div

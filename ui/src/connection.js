@@ -7,6 +7,7 @@ export async function getConnection() {
   if (connection) return connection;
 
   const { callZome } = await connect({ url: HOST_URL });
+
   connection = (instance, zome, fnName) => async params => {
     console.log(
       `Calling zome function: ${instance}/${zome}/${fnName} with params`,
