@@ -23,16 +23,21 @@ id = 'test-instance'
 [instances.storage]
 type = 'memory'
 
-[[interfaces]]
-admin = true
-id = 'websocket-interface'
+
+* Interfaces is an array of configurations of the channels (e.g. http or websockets) 
+* that the Conductor will use to send information to and from instances and users.
+* Details: https://developer.holochain.org/docs/guide/conductor_interfaces/
+
+[[interfaces]]                
+id = 'websocket-interface'      * Give an ID of your choice to this interface
 
 [[interfaces.instances]]
-id = 'test-instance'
+id = 'test-instance'            * Reference that needs to be made available via that interface
 
 [interfaces.driver]
-port = 8888
-type = 'websocket'
+port = 8888                     * The port on the device to run this interface over
+type = 'websocket'              * http or websockets
+
 
 [logger]
 state_dump = true
