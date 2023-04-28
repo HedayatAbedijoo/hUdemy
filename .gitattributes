@@ -1,0 +1,5 @@
+*.rs linguist-detectable=true
+*.html linguist-detectable=false
+*.js linguist-detectable=false
+*.rb linguist-detectable=false
+*.rs linguist-language=Rust
